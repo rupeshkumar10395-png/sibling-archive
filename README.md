@@ -1,947 +1,1304 @@
-# Sibling Archive — production starter architecture
+# Sibling Archive — V1 Product & Engineering Guide
 
-This is the **post-design engineering skeleton** for Sibling Archive.
-
-The supplied `homepage.html` is the finalized visual reference. It is intentionally preserved byte-for-byte under `reference/homepage-final.html`, while the `apps/web` folder shows how the same design should be split into reusable application pieces.
-
-The goal is to build the product without turning the homepage into one giant file again.
+> This README is the current source of truth for V1 implementation.
+>
+> It is based on the finalized V1 homepage/demo, the current starter architecture, and the two handwritten workflow pages provided by the product owner.
 
 ---
 
-## 1. What we are building
+## 1. What We Are Building
 
-Sibling Archive is a private, two-person memory archive.
+**Sibling Archive** is a private, funny, nostalgic digital archive created by siblings together.
 
-The important product rule is:
+The important product idea is:
 
-> The archive is not created by one person and then merely shared. Both siblings contribute before the final archive is opened.
+> One sibling starts the archive, another sibling joins through a link, and both contribute memories that eventually become one shared archive.
 
-The product therefore has two states:
+The archive is not supposed to feel like a SaaS dashboard.
 
-1. **Private building state** — each sibling can add their own memories without exposing the other person's answers too early.
-2. **Shared archive state** — after both sides are ready, the archive becomes one sequential story containing both versions.
+It should feel like:
 
-A public social feed is explicitly **not** the product.
+- a private family time capsule
+- a chaotic collection of sibling memories
+- something personal and funny
+- something worth opening again years later
 
----
-
-# 2. Recommended stack
-
-### Web
-- **Next.js App Router + React + TypeScript**
-- The landing page becomes `/`.
-- Creation flow lives under `/create`.
-- Receiver invitation flow lives under `/join/[token]`.
-- Final archive lives under `/archive/[slug]`.
-
-Next.js's App Router is a good fit because route segments and layouts map naturally to these product areas, and the official structure separates the application routes, UI, and public assets. See the Next.js App Router documentation.
-
-### API
-- **Node.js + Express + TypeScript**
-- Keep business logic out of route handlers.
-- Routes validate input, call services, and return responses.
-- The API owns archive permissions, invite redemption, memory creation, signed upload URLs, and publishing.
-
-### Database
-- **PostgreSQL + Prisma**
-
-This data is relational:
-
-`User → ArchiveMember → Archive → Memory`
-
-and
-
-`Archive → Invite`
-
-PostgreSQL is a better long-term fit than MongoDB for these membership, invite, ordering, publishing, and transaction-heavy relationships.
-
-### Media storage
-- **Private S3-compatible object storage**.
-- AWS S3 is the reference implementation.
-- Cloudflare R2 or Supabase Storage can be substituted behind the storage service.
-
-Do **not** send large photos/videos through the Express API. The API should create a short-lived signed upload URL and the browser should upload directly to object storage. AWS documents presigned URLs specifically for this pattern.
-
-### Background processing
-- **Redis + BullMQ + a separate Node worker**.
-
-Photos/videos/audio can require thumbnails, metadata extraction, poster frames, waveform generation, and optimization. These should not block an HTTP request.
-
-BullMQ provides queues, workers, retries, concurrency, and failed-job handling. The worker in this starter is intentionally separate from the API so it can scale independently.
-
-### Email
-- **Resend** or another transactional email provider.
-- Only used for private invite links and important archive notifications.
+The finalized homepage and demo archive are the visual reference for this feeling.
 
 ---
 
-# 3. Folder structure
+# 2. Current Product Status
+
+## Already completed
+
+- [x] V1 homepage finalized for testing
+- [x] Demo archive finalized
+- [x] V1 architecture/starter prepared
+- [x] Starter pushed to GitHub
+- [x] Project opened in VS Code
+- [x] Project opened through Antigravity
+
+## Current V1 work
+
+- [ ] User profile section
+- [ ] Complete V1 architecture implementation
+- [ ] Creator archive flow
+- [ ] Archive persistence
+- [ ] Share/invite flow
+- [ ] Sibling/participant flow
+- [ ] Participant contributions
+- [ ] Combined archive
+- [ ] Archive sealing/opening state
+- [ ] Mobile saving/install experience
+- [ ] Multi-sibling support
+
+---
+
+# 3. Critical Product Rule
+
+The handwritten workflow describes **two different people interacting with the product**.
+
+Do not design the application as if only the archive creator exists.
+
+There are at least two roles:
+
+```text
+ARCHIVE CREATOR
+    ↓
+starts the archive
+    ↓
+creates/configures it
+    ↓
+shares invite/link
+    ↓
+can contribute memories
+```
+
+and:
+
+```text
+INVITED SIBLING / PARTICIPANT
+    ↓
+opens the shared link
+    ↓
+sees the archive experience
+    ↓
+can contribute to permitted sections
+    ↓
+adds their own photos/text/cards/memories
+```
+
+These contributions eventually become part of:
+
+```text
+ONE SHARED ARCHIVE
+```
+
+---
+
+# 4. Product Workflow — High Level
+
+```text
+                 SIBLING ARCHIVE
+                       │
+                       ▼
+                  Homepage
+                       │
+                       ▼
+                Create Own Archive
+                       │
+                       ▼
+              Create / Configure Archive
+                       │
+                       ▼
+                 Demo / Preview
+                       │
+                       ▼
+                Create User Profile
+                       │
+                       ▼
+                 Generate Link
+                       │
+                       ▼
+             Send Link to Sibling
+                       │
+                       ▼
+             ┌───────────────────┐
+             │                   │
+             ▼                   ▼
+       Creator continues     Sibling opens link
+                                   │
+                                   ▼
+                           Join / Profile
+                                   │
+                                   ▼
+                         View allowed archive
+                                   │
+                                   ▼
+                    Add own memories/content
+                                   │
+                                   ▼
+             ┌───────────────────┴───────────────────┐
+             │                                       │
+             ▼                                       ▼
+      Creator contributions                  Sibling contributions
+             │                                       │
+             └───────────────────┬───────────────────┘
+                                 ▼
+                         FINAL SHARED ARCHIVE
+                                 │
+                                 ▼
+                            Seal Archive
+                                 │
+                                 ▼
+                      Opening / future date
+                                 │
+                                 ▼
+                         Saved on their mobile
+```
+
+---
+
+# 5. Creator Flow
+
+The archive creator is the sibling who starts the archive.
+
+## Step 1 — Homepage
+
+The user visits the Sibling Archive homepage.
+
+They can:
+
+- understand what Sibling Archive is
+- see the finalized demo archive
+- decide to create their own archive
+
+The homepage is already finalized.
+
+### Important
+
+Do not redesign the homepage during backend/product implementation unless explicitly requested.
+
+---
+
+## Step 2 — Create Own Archive
+
+The user selects:
+
+```text
+Create your own archive
+```
+
+This begins the real product flow.
+
+The creator should not immediately be thrown into a complicated dashboard.
+
+The experience should remain:
+
+- sequential
+- simple
+- personal
+- visual
+- playful
+
+---
+
+## Step 3 — Create Archive
+
+The creator begins creating their archive.
+
+The exact final fields/UI are still an implementation decision and must be documented before being assumed.
+
+The system must create a persistent archive record.
+
+Conceptually:
+
+```text
+User
+  │
+  ▼
+Archive
+  │
+  ├── creator
+  ├── title/name
+  ├── status
+  ├── participants
+  ├── memories
+  └── lifecycle dates
+```
+
+---
+
+## Step 4 — Archive Preview
+
+The handwritten workflow explicitly describes the creator seeing a demo/preview of the archive.
+
+The preview should demonstrate what their archive can become.
+
+It should use the same visual language as the finalized demo.
+
+The preview is not the database itself.
+
+The real archive must eventually render from persisted data.
+
+---
+
+## Step 5 — User Profile
+
+The V1 plan explicitly includes a user profile section.
+
+The creator should create/sign into their profile before the archive is permanently associated with them and/or before the sharing stage, according to the final auth decision.
+
+The profile exists so the system can:
+
+- identify the creator
+- associate archives with them
+- allow them to return later
+- manage their archives
+- participate in shared archives
+
+---
+
+## Step 6 — Generate Link
+
+Once the creator is ready to involve the sibling:
+
+```text
+Archive
+    ↓
+Generate invitation/link
+```
+
+The link should identify the invitation, not expose private database identifiers unnecessarily.
+
+Conceptually:
+
+```text
+Creator
+   ↓
+Invite
+   ↓
+Secure token/link
+   ↓
+Sibling
+```
+
+---
+
+## Step 7 — Send Link
+
+The creator sends the generated link to the sibling.
+
+The product should make this action extremely obvious.
+
+Possible future channels:
+
+- copy link
+- WhatsApp
+- messages
+- share sheet
+
+The exact sharing implementation is not specified by the handwritten notes and should not be invented as a hard requirement.
+
+---
+
+# 6. Invited Sibling / Participant Flow
+
+The second person receives the link.
+
+## Step 1 — Open Link
+
+```text
+Invite Link
+    ↓
+Archive / Join experience
+```
+
+The participant should immediately understand:
+
+> "You have been invited to help create this archive."
+
+---
+
+## Step 2 — Profile / Identity
+
+The participant may need to create or use a profile.
+
+The exact authentication UX is still a product decision.
+
+Do not silently choose:
+
+- Google login
+- email/password
+- magic link
+- phone authentication
+
+without recording the decision first.
+
+---
+
+## Step 3 — See Archive
+
+The handwritten workflow states that the invited sibling can see the archive/current archive experience.
+
+The participant should not necessarily see unrestricted creator/admin controls.
+
+Use explicit permissions.
+
+Conceptually:
+
+```text
+Archive
+├── visible content
+├── participant-editable sections
+└── creator-only controls
+```
+
+---
+
+## Step 4 — Add Memories
+
+The participant should be able to contribute to the relevant archive sections.
+
+The notes explicitly mention that they can:
+
+- upload photos
+- add their own content
+- add cards in the respective sections
+
+The product should therefore support a reusable contribution model.
+
+Example:
+
+```text
+Participant
+    │
+    ├── Add photo
+    ├── Add text
+    ├── Add answer
+    ├── Add memory/card
+    └── Future memory types
+```
+
+---
+
+# 7. Shared Archive Model
+
+The final archive is not:
+
+```text
+Creator Archive + separate Sibling Archive
+```
+
+It is:
+
+```text
+                 SHARED ARCHIVE
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+        Creator memories    Sibling memories
+             │                   │
+             └─────────┬─────────┘
+                       ▼
+                ONE ARCHIVE
+```
+
+Every contribution should retain authorship metadata internally.
+
+Example:
+
+```text
+Memory
+├── archiveId
+├── authorId
+├── type
+├── content
+├── media
+└── createdAt
+```
+
+This allows the UI to say things such as:
+
+> Added by Kashish
+
+without maintaining separate archives.
+
+---
+
+# 8. Archive Memory Types
+
+The current demo establishes the visual language for multiple memory types.
+
+The real application should NOT hardcode one giant archive HTML file.
+
+Instead:
+
+```text
+Archive
+   ↓
+Memory[]
+   ↓
+Memory Renderer
+```
+
+Possible memory types include:
+
+```text
+Question / Answer
+Photo
+Chat Screenshot
+Before / After
+Forbidden Gallery
+Rare Footage
+Sibling Court
+Text Memory
+Audio
+Video
+```
+
+New memory types should be addable without rewriting the whole archive.
+
+---
+
+# 9. Important Archive Interaction
+
+The archive should remain **sequential**.
+
+The finalized demo established the idea of:
+
+```text
+Previous Memory
+        │
+        ▼
+   Current Memory
+        │
+        ▼
+Next Memory
+```
+
+Do not put every photo/video/memory on one enormous page.
+
+Different memories should appear one by one / as separate archive moments.
+
+This is an important product characteristic.
+
+---
+
+# 10. Multiple Siblings
+
+The handwritten notes explicitly mention an additional idea:
+
+> An archive can be for more than one sibling.
+
+Therefore the data model must NOT assume:
+
+```text
+Archive = exactly 2 users
+```
+
+Instead:
+
+```text
+Archive
+   │
+   ├── Creator
+   ├── Participant
+   ├── Participant
+   ├── Participant
+   └── ...
+```
+
+The exact maximum number of participants is not defined yet.
+
+Do not invent a limit unless required by infrastructure.
+
+A future flow can be:
+
+```text
+Sibling A creates archive
+        ↓
+A sends invite
+        ↓
+Sibling B joins
+        ↓
+Sibling B can invite another sibling
+        ↓
+Sibling C joins
+        ↓
+All contribute
+        ↓
+ONE shared archive
+```
+
+Whether participants can invite additional people directly is still a product decision.
+
+Document the decision before implementation.
+
+---
+
+# 11. Final Archive
+
+Once the archive is complete, both/all participating siblings should be able to access the shared archive according to their permissions.
+
+The handwritten workflow also describes:
+
+```text
+Sealed 2026
+↓
+Next opening date
+```
+
+This suggests a time-capsule lifecycle.
+
+Conceptually:
+
+```text
+DRAFT
+  ↓
+COLLECTING
+  ↓
+READY
+  ↓
+SEALED
+  ↓
+OPENABLE_AT
+  ↓
+OPEN
+```
+
+The exact rules for who can seal it, whether sealing is reversible, and how the opening date works are not fully defined in the notes.
+
+Do NOT invent those rules silently.
+
+Create a product decision before implementation.
+
+---
+
+# 12. Saving on Mobile
+
+The notes mention the archive being saved on the users' mobile.
+
+This could mean several technical implementations:
+
+- PWA installation
+- Add to Home Screen
+- downloadable archive
+- saved shortcut/link
+- native app later
+
+The notes do not specify which one.
+
+Therefore:
+
+**Do not implement a specific mobile-saving mechanism until the product decision is made.**
+
+For V1, the implementation should preserve the possibility of a mobile-first saved archive experience.
+
+---
+
+# 13. Security Model
+
+The archive contains private personal media.
+
+Therefore:
+
+```text
+PUBLIC HOMEPAGE
+    ≠
+PUBLIC ARCHIVE
+```
+
+The homepage/demo can be public.
+
+Real user archives must be private.
+
+At minimum:
+
+```text
+User
+ ↓
+Authentication
+ ↓
+Authorization
+ ↓
+Archive membership
+ ↓
+Memory access
+```
+
+A user must only retrieve an archive if they have permission.
+
+Private media should not be exposed through permanently public URLs.
+
+---
+
+# 14. Recommended Architecture
+
+The starter should maintain clear separation:
 
 ```text
 sibling-archive/
 │
 ├── apps/
-│   ├── web/                         # Next.js product UI
-│   │   ├── public/
-│   │   │   └── archive-demo/
-│   │   │       └── index.html       # current interactive archive demo
-│   │   │
-│   │   └── src/
-│   │       ├── app/
-│   │       │   ├── layout.tsx
-│   │       │   ├── page.tsx          # landing page
-│   │       │   ├── create/           # creator flow
-│   │       │   ├── join/[token]/     # receiver flow
-│   │       │   └── archive/[slug]/   # finished archive
-│   │       │
-│   │       ├── components/
-│   │       │   ├── marketing/        # homepage sections
-│   │       │   ├── archive/          # archive presentation
-│   │       │   ├── creation/         # creation UI
-│   │       │   ├── memories/         # photo/video/note/etc.
-│   │       │   └── shared/           # buttons, dialogs, loaders
-│   │       │
-│   │       └── styles/
-│   │           └── marketing.css
+│   ├── web/
+│   │   └── Next.js frontend
 │   │
-│   ├── api/                         # Node/Express backend
-│   │   └── src/
-│   │       ├── routes/
-│   │       ├── controllers/
-│   │       ├── services/
-│   │       ├── validators/
-│   │       ├── middleware/
-│   │       ├── config/
-│   │       └── lib/
+│   ├── api/
+│   │   └── backend/API
 │   │
-│   └── worker/                      # asynchronous media jobs
-│       └── src/
-│           ├── jobs/
-│           ├── processors/
-│           └── lib/
+│   └── worker/
+│       └── background media processing
 │
 ├── packages/
-│   ├── db/                          # Prisma schema + DB client
-│   ├── shared/                      # shared TS types / validation
-│   └── ui/                          # truly reusable visual primitives
+│   ├── shared/
+│   ├── validation/
+│   └── ...
+│
+├── prisma/
+│   └── database schema/migrations
 │
 ├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── FLOW.md
-│   ├── DATA-MODEL.md
-│   └── API.md
 │
-├── reference/
-│   ├── homepage-final.html          # exact supplied homepage
-│   └── archive-demo-v6.html         # current standalone demo reference
-│
-├── .env.example
 ├── package.json
-├── pnpm-workspace.yaml
 └── README.md
 ```
 
----
-
-# 4. Homepage architecture
-
-The current homepage has been split conceptually into:
-
-```text
-Header
-Hero
-Marquee
-Statement
-Ritual
-SiblingMagic
-ArchiveDemoSection
-Seal
-FinalCTA
-Footer
-```
-
-The current `apps/web/src/components/marketing/*.tsx` files preserve the finalized HTML visually while giving us clear boundaries for later refinement.
-
-The important change is that the **archive demo is no longer conceptually part of the homepage source**.
-
-It is now:
-
-```text
-apps/web/public/archive-demo/index.html
-```
-
-and the homepage renders it through:
-
-```text
-components/archive/ArchiveDemo.tsx
-```
-
-This means the demo can eventually be replaced by the real archive renderer without rebuilding the marketing page.
+Do not introduce another framework unless there is a real architectural reason.
 
 ---
 
-# 5. Complete product flow
+# 15. Antigravity Setup — Current Workflow
 
-## STEP 0 — Visitor lands on homepage
+The product repository and Antigravity configuration are intentionally separate.
+
+You currently have:
 
 ```text
-GET /
-   ↓
-Landing page
-   ↓
-"Make our archive"
-   ↓
-/create
+Sibling Archive repository
+        │
+        └── opened in VS Code
+        └── pushed to GitHub
+
+Antigravity configuration/project
+        │
+        └── separate directory
 ```
 
-The homepage should never know about a specific archive in production.
+The Antigravity directory is the AI/product context.
 
-The Rupesh × Kashish archive is only the **demo**.
+The Sibling Archive directory is the actual application.
+
+### Rule
+
+**Antigravity may modify the Sibling Archive repository.**
+
+**Antigravity configuration/documentation is context, not application code.**
 
 ---
 
-# 6. Creation page
+# 16. How Antigravity Should Analyse the Separate Directory
 
-Route:
+Do NOT immediately ask Antigravity to implement features.
 
-```text
-/create
-```
+Start with an analysis pass.
 
-The creator enters:
+## Step 1 — Open both directories in the same Antigravity Project
 
-- their name
-- sibling's name
-- email
-- archive title
-- optional cover/title text
-
-Then clicks something like:
-
-> "okay, let's make the mess"
-
-Frontend sends:
-
-```http
-POST /v1/archives
-```
-
-API transaction:
+The agent needs visibility into:
 
 ```text
-validate request
-   ↓
-create/find creator user
-   ↓
-create Archive(status = DRAFT)
-   ↓
-create ArchiveMember(role = CREATOR)
-   ↓
-create initial creator session
-   ↓
-return archiveId
+Sibling Archive application
++
+Antigravity configuration/product documentation
 ```
 
-Then redirect:
+Do not copy the configuration files into the application repository.
+
+---
+
+## Step 2 — Start with read-only analysis
+
+Give Antigravity this instruction:
 
 ```text
-/create/[archiveId]
+You are entering an existing Sibling Archive repository.
+
+Before modifying anything:
+
+1. Read the complete Sibling Archive product documentation available in the separate Antigravity configuration directory.
+2. Read the repository README and inspect the complete application repository.
+3. Inspect package.json files, workspace configuration, source directories, database configuration, environment examples, and existing routes/components.
+4. Map the current architecture.
+5. Map the current implementation against the documented creator and participant workflows.
+6. Identify what already exists.
+7. Identify what is incomplete.
+8. Identify architecture risks.
+9. Identify contradictions between the current starter and the product workflow.
+10. Identify decisions that are still unspecified.
+
+Do NOT modify files.
+
+Produce:
+- Repository map
+- Current architecture
+- Implemented features
+- Missing features
+- Workflow gaps
+- Architecture risks
+- Recommended V1 implementation order
+- Questions that require product decisions
+
+STOP after the analysis.
+```
+
+### Important
+
+Do not let it "fix things" during this first pass.
+
+You want to see whether it **understood the product correctly** before it touches the code.
+
+---
+
+# 17. Review Antigravity's Analysis
+
+Check these five things:
+
+### A. Did it understand the creator?
+
+It should understand:
+
+```text
+Homepage
+→ Create archive
+→ Profile
+→ Archive
+→ Preview
+→ Invite
+```
+
+### B. Did it understand the participant?
+
+It should understand:
+
+```text
+Invite
+→ Join/profile
+→ See archive
+→ Add memories
+→ Shared archive
+```
+
+### C. Did it understand multiple siblings?
+
+It must NOT build:
+
+```text
+creatorId
+siblingId
+```
+
+as the only possible relationship.
+
+It should understand:
+
+```text
+Archive
+  ↕
+ArchiveMembers[]
+```
+
+### D. Did it understand the archive as dynamic?
+
+It should NOT plan to hardcode:
+
+```text
+Rupesh
+Kashish
+17 memories
+```
+
+into production.
+
+### E. Did it recognize undefined decisions?
+
+If it confidently invents the authentication/sealing/mobile-saving behavior without flagging the ambiguity, stop it and correct the context.
+
+---
+
+# 18. Second Antigravity Prompt — Architecture Plan
+
+After you approve its analysis, give it:
+
+```text
+Using the product workflow and repository analysis you just produced:
+
+Create a V1 implementation plan.
+
+The plan must follow the actual product workflow:
+
+Homepage
+→ Create Archive
+→ Creator Profile
+→ Archive Creation
+→ Archive Preview
+→ Invite Link
+→ Participant Join
+→ Participant Profile
+→ Participant Contributions
+→ Shared Archive
+→ Seal / Opening lifecycle
+
+Prioritize vertical slices.
+
+Each milestone must produce a testable user-facing result.
+
+Do not build infrastructure that is not required for the current milestone.
+
+For each milestone specify:
+- files/modules affected
+- database changes
+- API changes
+- frontend changes
+- security considerations
+- browser test scenario
+- acceptance criteria
+
+Do not implement anything yet.
 ```
 
 ---
 
-# 7. Creator workspace
+# 19. Then Implement ONE Vertical Slice
 
-The creator sees the archive-building interface.
+Do not say:
 
-This is **not** the final archive UI.
-
-It is an editing workspace.
-
-Example sections:
-
-```text
-Your archive
-
-[ Add photo ]
-[ Add video ]
-[ Add voice note ]
-[ Add story ]
-[ Add question ]
-[ Add chat screenshot ]
-[ Add rare footage ]
-[ Add court case ]
-
-----------------------
-
-Preview
-
-----------------------
-
-Invite sibling →
-```
-
-The creator can save drafts at any point.
-
----
-
-# 8. Upload flow — important
-
-Never do this:
-
-```text
-Browser → Express → upload 300MB video → Express → storage
-```
+> Build the backend.
 
 Instead:
 
 ```text
-Browser
-   │
-   │ POST /v1/memories/:archiveId/upload-url
-   ↓
-API
-   │
-   │ authorize archive membership
-   │ validate mime + size
-   │ generate object key
-   │ generate signed PUT URL
-   ↓
-Browser
-   │
-   │ PUT file directly
-   ↓
-Private object storage
+Implement Milestone 1 only.
+
+Make the homepage's "Create Archive" action lead to the real Create Archive experience.
+
+Use the existing architecture.
+
+Do not redesign the finalized homepage.
+
+Implement the smallest complete vertical slice.
+
+Run the application.
+
+Test the flow in the browser.
+
+Fix errors.
+
+Do not begin Milestone 2.
+
+Report:
+- files changed
+- why they changed
+- tests performed
+- remaining issues
 ```
 
-Then browser tells API:
-
-```http
-POST /v1/memories/:archiveId
-```
-
-with metadata such as:
-
-```json
-{
-  "kind": "photo",
-  "objectKey": "archives/abc/media/uuid/original.jpg",
-  "title": "summer 2012",
-  "body": "the day we got lost"
-}
-```
-
-The API creates a `Memory` row.
-
-For private media, only archive members should receive signed read URLs.
+Then review it.
 
 ---
 
-# 9. Media processing flow
+# 20. The Correct Development Loop
 
-After a media record is created:
-
-```text
-Memory created
-   ↓
-queue media-processing job
-   ↓
-Redis / BullMQ
-   ↓
-Worker picks job
-   ↓
-image/video/audio processor
-   ↓
-create optimized derivatives
-   ↓
-write metadata to PostgreSQL
-   ↓
-Memory.processingState = READY
-```
-
-Examples:
-
-### Photo
+Every feature should follow:
 
 ```text
-original.jpg
-thumbnail.webp
-medium.webp
-width
-height
-mimeType
+PLAN
+  ↓
+IMPLEMENT
+  ↓
+RUN
+  ↓
+BROWSER TEST
+  ↓
+FIX
+  ↓
+REVIEW
+  ↓
+COMMIT
+  ↓
+NEXT FEATURE
 ```
 
-### Video
+Not:
 
 ```text
-original.mp4
-poster.webp
-duration
-width
-height
-```
-
-### Audio
-
-```text
-original.m4a
-waveform JSON
-waveform image/preview
- duration
-```
-
-The final archive should use optimized derivatives rather than blindly loading original files.
-
----
-
-# 10. Invite sibling
-
-Creator clicks:
-
-> "Send this to my sibling"
-
-API:
-
-```http
-POST /v1/invites
-```
-
-Body:
-
-```json
-{
-  "archiveId": "abc",
-  "email": "sibling@example.com"
-}
-```
-
-Backend:
-
-```text
-generate cryptographically random token
-        ↓
-store HASH(token)
-        ↓
-set expiry
-        ↓
-email raw token link
-```
-
-Important:
-
-**Never store the raw invitation token in the database.**
-
-The email contains something like:
-
-```text
-/join/<raw-token>
-```
-
-The DB only stores its hash.
-
----
-
-# 11. Receiver flow
-
-Route:
-
-```text
-/join/[token]
-```
-
-Receiver opens the link.
-
-API verifies:
-
-```text
-token exists?
-expired?
-already used?
-archive still accepting contributions?
-```
-
-If valid:
-
-```text
-create/find receiver user
-       ↓
-create ArchiveMember(role = RECEIVER)
-       ↓
-mark Invite.acceptedAt
-       ↓
-create receiver session
-       ↓
-redirect to /join/[token]/contribute
+PROMPT
+  ↓
+500 FILES
+  ↓
+"Done!"
 ```
 
 ---
 
-# 12. The receiver must have their own side
+# 21. Git Discipline
 
-This is a core product rule.
-
-The receiver should see:
-
-```text
-"You have been accused of remembering things differently."
-
-Add your photos
-Add your answers
-Add your notes
-Add your version of memories
-Add your own evidence
-```
-
-They should NOT simply edit the creator's memories.
-
-Instead:
-
-```text
-Creator memory
-       ↕
-Receiver memory
-```
-
-Both become contributions to the final archive.
-
-This preserves the product's central idea:
-
-> Same childhood. Two completely different witnesses.
-
----
-
-# 13. Questions / answers
-
-Questions should be stored as data, not hard-coded into the final archive.
+Because the project is already pushed to GitHub, use small commits.
 
 Example:
 
 ```text
-Question
-  id
-  archiveId
-  text
-  order
-
-Answer
-  id
-  questionId
-  authorId
-  text
+feat: add creator profile
+feat: create archive flow
+feat: persist archives
+feat: add archive invitations
+feat: add participant joining
+feat: add participant memories
+feat: render dynamic memories
+feat: add archive sealing
 ```
 
-This allows us to:
+Before every significant agent task:
 
-- add new funny questions later
-- reorder questions
-- show creator/receiver answers separately
-- reveal them together in the final archive
+```bash
+git status
+git add .
+git commit -m "chore: checkpoint before archive flow"
+```
 
-The current Rupesh × Kashish questions are demo content only.
+If Antigravity makes a bad change:
+
+```bash
+git diff
+```
+
+Review before accepting.
+
+Never blindly accept a giant diff.
 
 ---
 
-# 14. Memory types
+# 22. Environment / Secrets
 
-The archive renderer should be data-driven.
-
-Recommended memory kinds:
+Keep:
 
 ```text
-photo
-video
-audio
-note
-question
-chat
-court
-before-after
-rare-footage
-forbidden-gallery
+.env
 ```
 
-Each memory has a renderer:
+out of Git.
+
+Use:
 
 ```text
-MemoryRenderer
- ├── PhotoMemory
- ├── VideoMemory
- ├── AudioMemory
- ├── NoteMemory
- ├── QuestionMemory
- ├── ChatMemory
- ├── CourtMemory
- └── BeforeAfterMemory
+.env.example
 ```
 
-That is how we avoid building another giant 17-slide hard-coded HTML file.
+for required variable names.
+
+Never allow Antigravity to commit:
+
+- API keys
+- database passwords
+- storage secrets
+- JWT secrets
+- OAuth credentials
 
 ---
 
-# 15. Completion rules
+# 23. Database Rule
 
-Do not publish immediately after the creator finishes.
+Do not let Antigravity create a database schema based only on UI screens.
 
-Recommended state machine:
+The data model should represent the product.
 
-```text
-DRAFT
-  ↓
-WAITING_FOR_SIBLING
-  ↓
-READY
-  ↓
-PUBLISHED
-  ↓
-SEALED
-```
-
-Meaning:
-
-### DRAFT
-Creator is still building.
-
-### WAITING_FOR_SIBLING
-Creator has invited the receiver.
-
-### READY
-Both members have contributed enough to open the archive.
-
-### PUBLISHED
-Final archive link exists.
-
-### SEALED
-Optional future state when the siblings intentionally stop editing the chapter.
-
----
-
-# 16. Publishing
-
-Creator/receiver reaches:
-
-> "Open the archive"
-
-API checks:
-
-```text
-creator exists
-receiver exists
-invite accepted
-required contributions complete
-all media processing complete
-no pending upload failures
-```
-
-Then in one DB transaction:
-
-```text
-Archive.status = PUBLISHED
-Archive.slug = uniqueSlug()
-Archive.publishedAt = now()
-```
-
-Return:
-
-```json
-{
-  "slug": "rupesh-kashish-chaos-years"
-}
-```
-
-Frontend redirects to:
-
-```text
-/archive/rupesh-kashish-chaos-years
-```
-
-That is the final archive link.
-
----
-
-# 17. Final archive URL architecture
-
-Use a public-looking slug but keep the archive content private by default.
-
-Example:
-
-```text
-https://yourdomain.com/archive/rupesh-kashish-chaos-years
-```
-
-Do not put raw database IDs in the URL.
-
-The slug is for the experience; the database ID remains internal.
-
-If you want truly unguessable private links later, add a separate share token layer.
-
----
-
-# 18. Final archive rendering
-
-The final page should fetch an archive projection:
-
-```http
-GET /v1/archives/:slug/view
-```
-
-The API returns something like:
-
-```json
-{
-  "archive": {
-    "title": "The Chaos Years",
-    "members": [
-      { "name": "Rupesh", "role": "creator" },
-      { "name": "Kashish", "role": "receiver" }
-    ]
-  },
-  "memories": [
-    {
-      "kind": "photo",
-      "title": "summer 2012"
-    },
-    {
-      "kind": "question",
-      "question": "Who would win in a fight?",
-      "answers": []
-    }
-  ]
-}
-```
-
-The frontend renderer decides how each memory looks.
-
----
-
-# 19. What the final frontend should NOT do
-
-Avoid:
-
-```text
-archive.html
-  17 hard-coded slides
-  9000 lines CSS
-  3000 lines JS
-  every memory manually written
-```
-
-Instead:
-
-```text
-archive page
-   ↓
-archive data
-   ↓
-memory list
-   ↓
-memory renderer
-   ↓
-individual reusable memory components
-```
-
-The demo is allowed to be hard-coded because it is marketing content.
-
-The real archive must be data-driven.
-
----
-
-# 20. Suggested API surface
-
-```text
-POST   /v1/archives
-GET    /v1/archives/:id
-PATCH  /v1/archives/:id
-POST   /v1/archives/:id/publish
-
-POST   /v1/invites
-POST   /v1/invites/:token/accept
-
-POST   /v1/memories/:archiveId/upload-url
-POST   /v1/memories/:archiveId
-GET    /v1/memories/:archiveId/feed
-PATCH  /v1/memories/:memoryId
-DELETE /v1/memories/:memoryId
-
-GET    /v1/archives/:slug/view
-POST   /v1/archives/:id/seal
-```
-
-Keep controllers thin.
-
-```text
-route
- ↓
-controller
- ↓
-validator
- ↓
-service
- ↓
-database/storage/queue
-```
-
-Do not put database queries directly inside routes.
-
----
-
-# 21. Security rules from day one
-
-1. Every archive request checks membership.
-2. Creator and receiver are separate roles.
-3. Invite tokens are random, hashed, single-use and expiring.
-4. Media bucket is private.
-5. Browser receives short-lived signed upload/download URLs.
-6. Never expose storage credentials to the browser.
-7. Validate MIME type and file size server-side.
-8. Never trust the filename or extension for media type.
-9. Rate-limit invite creation and auth endpoints.
-10. Sanitize/escape user text before rendering.
-11. Do not allow arbitrary HTML inside memories.
-12. Use transactions for archive publishing.
-13. Log security-sensitive events without logging private media URLs or raw invite tokens.
-
----
-
-# 22. Why the media is separated from PostgreSQL
-
-PostgreSQL stores **metadata**:
-
-```text
-who uploaded it
-what it is
-where it belongs
-when it was created
-processing status
-object key
-```
-
-Object storage stores:
-
-```text
-actual jpg
-actual mp4
-actual m4a
-actual screenshots
-```
-
-This keeps the database small and makes media delivery scalable.
-
----
-
-# 23. Why the worker is separate
-
-A user uploading a 200 MB video should not make the API wait for:
-
-```text
-upload
-ffmpeg
-poster frame
-metadata
-compression
-waveform
-```
-
-The API should answer quickly and queue the work.
-
-The worker can then be scaled independently.
-
----
-
-# 24. Build order I recommend
-
-Do not build everything at once.
-
-### Phase 1 — UI foundation
-
-```text
-homepage
-creation page
-receiver page
-archive renderer
-```
-
-Use fake JSON first.
-
-### Phase 2 — Database
-
-Implement:
+The central relationship is:
 
 ```text
 User
-Archive
-ArchiveMember
-Invite
-Memory
+  │
+  ├── ArchiveMembership ── Archive
+  │                           │
+  │                           ├── Memory
+  │                           ├── Invite
+  │                           └── lifecycle
+  │
+  └── authored memories
 ```
 
-### Phase 3 — Authentication
-
-Implement creator login/session and receiver invite redemption.
-
-### Phase 4 — Real media upload
-
-Implement signed upload URLs and private storage.
-
-### Phase 5 — Receiver contribution flow
-
-Implement photos, notes, answers and memories from the second sibling.
-
-### Phase 6 — Worker
-
-Add thumbnails, video posters, audio metadata and processing states.
-
-### Phase 7 — Publishing
-
-Implement the archive state machine and final slug.
-
-### Phase 8 — Production hardening
-
-Add rate limits, validation, observability, backups, deletion flows, privacy controls and tests.
+The exact schema should be proposed and reviewed before migrations are finalized.
 
 ---
 
-# 25. The most important architectural decision
+# 24. Media Rule
 
-The **homepage and the real archive must become two separate products in code**.
+Do not send large photos/videos through unnecessary application-server memory buffers.
+
+Prefer:
 
 ```text
-MARKETING
-/
- └── homepage
-      └── static demo
-
-PRODUCT
-/
- ├── create
- ├── join
- ├── contribute
- └── archive/[slug]
+Browser
+   ↓
+authorized upload
+   ↓
+private object storage
+   ↓
+metadata in database
 ```
 
-The homepage demo can remain beautiful, funny and hand-crafted.
+Then:
 
-The real archive should be dynamic, secure and generated from database records.
-
-That separation lets you keep changing the marketing experience without risking the actual archive system.
+```text
+Archive
+   ↓
+Memory
+   ↓
+Media reference
+   ↓
+authorized/signed access
+```
 
 ---
 
-# 26. Current starter status
+# 25. UI Rule
 
-This ZIP is intentionally a **structure + architecture starter**, not a fake claim that the backend is already implemented.
+The homepage is finalized.
 
-Included:
+The archive demo is the visual reference.
 
-- finalized homepage reference
-- extracted archive demo
-- component boundaries for the homepage
-- Next.js web skeleton
-- Express API skeleton
-- worker skeleton
-- Prisma data model
-- shared types
-- environment template
-- complete creation → invite → contribution → publish → archive flow
+The actual application should preserve the product personality:
 
-The next implementation step should be the **creation flow + database**, not more homepage work.
+### Good
+
+- funny
+- personal
+- imperfect
+- playful
+- nostalgic
+- surprising
+- visual
+- sequential
+
+### Bad
+
+- generic dashboard
+- SaaS cards everywhere
+- corporate sidebar
+- analytics-looking interface
+- "Manage your memories"
+- "Memory Management"
+- unnecessary tables
+- overly serious copy
+- too many settings
+
+The product should feel like:
+
+> "We found our old sibling memories and put them somewhere together."
+
+Not:
+
+> "Welcome to your centralized digital memory management platform."
+
+---
+
+# 26. Do Not Overbuild V1
+
+Before implementing a feature ask:
+
+```text
+Does this directly support the archive workflow?
+```
+
+If not, defer it.
+
+For example, avoid initially building:
+
+- analytics
+- admin dashboards
+- recommendation engines
+- complex notification systems
+- elaborate search
+- social feeds
+- unnecessary settings
+- AI-generated memories
+
+The core loop matters more:
+
+```text
+CREATE
+→ INVITE
+→ CONTRIBUTE
+→ COMBINE
+→ SEAL
+→ OPEN
+```
+
+---
+
+# 27. Product Decisions Still Requiring Confirmation
+
+The handwritten workflow does not fully specify these.
+
+Do not let the agent silently decide them.
+
+## Authentication
+
+Possible choices:
+
+- email/password
+- magic link
+- social login
+- another method
+
+## Archive visibility
+
+Who can see an archive before it is sealed?
+
+## Contribution permissions
+
+Can participants edit existing memories or only add new ones?
+
+## Invitations
+
+Can only the creator invite?
+
+Can participants invite more siblings?
+
+## Multiple siblings
+
+What is the maximum or expected number?
+
+## Sealing
+
+Who can seal?
+
+Can it be reopened?
+
+Can new memories be added after sealing?
+
+## Opening date
+
+Can the date be changed?
+
+What happens when the date arrives?
+
+## Mobile saving
+
+What exactly does "saved in mobile" mean technically?
+
+These should become entries in `DECISIONS.md` once decided.
+
+---
+
+# 28. First Real V1 Milestones
+
+Recommended order:
+
+### Milestone 0 — Repository analysis
+
+No code changes.
+
+### Milestone 1 — User profile
+
+Creator can establish their profile.
+
+### Milestone 2 — Create archive
+
+Creator can create and persist an archive.
+
+### Milestone 3 — Archive preview
+
+Creator sees their archive experience.
+
+### Milestone 4 — Invite
+
+Creator generates a participant invitation.
+
+### Milestone 5 — Join
+
+Sibling opens the link and joins.
+
+### Milestone 6 — Contribute
+
+Sibling can add memories.
+
+### Milestone 7 — Shared archive
+
+Creator + participants see the combined archive.
+
+### Milestone 8 — Media
+
+Private photo/video/audio handling.
+
+### Milestone 9 — Seal
+
+Archive lifecycle.
+
+### Milestone 10 — Mobile
+
+Saved/mobile archive experience.
+
+---
+
+# 29. Acceptance Test — The Most Important Test
+
+At the end of V1, a completely fresh test should be possible:
+
+```text
+1. Open homepage
+2. Click Create Archive
+3. Create profile
+4. Create archive
+5. Preview archive
+6. Generate invite
+7. Copy/send invite
+8. Open invite in another browser/session
+9. Create/join participant profile
+10. Participant sees the archive
+11. Participant adds a photo
+12. Participant adds text/memory
+13. Creator sees the contribution
+14. Archive contains both people's memories
+15. Archive can be sealed
+16. Archive has an opening date/state
+17. Authorized participants can access it
+18. Unauthorized user cannot access it
+```
+
+If this works, the **core Sibling Archive product loop works**.
+
+---
+
+# 30. Final Rule for Antigravity
+
+Antigravity is the implementation agent.
+
+It is not the product owner.
+
+When the product documentation is ambiguous:
+
+```text
+STOP
+↓
+ASK / DOCUMENT DECISION
+↓
+THEN IMPLEMENT
+```
+
+Do not let it turn an assumption into architecture.
+
+When a feature is complete:
+
+```text
+RUN IT
+↓
+TEST IT
+↓
+SHOW EVIDENCE
+↓
+COMMIT IT
+```
+
+The goal is not to produce the most code.
+
+The goal is to produce a working Sibling Archive with the smallest amount of unnecessary complexity.
