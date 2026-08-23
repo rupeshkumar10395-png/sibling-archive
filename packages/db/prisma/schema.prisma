@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String          @id @default(cuid())
+  email       String          @unique
+  displayName String?
+  createdAt   DateTime        @default(now())
+  memberships ArchiveMember[]
+  memories    Memory[]
+}
+
+model Archive {
+  id            String          @id @default(cuid())
+  slug          String?         @unique
+  title         String
+  status        ArchiveStatus   @default(DRAFT)
+  createdAt     DateTime        @default(now())
+  publishedAt   DateTime?
+  members       ArchiveMember[]
+  invites       Invite[]
+  memories      Memory[]
+}
+
+model ArchiveMember {
+  id        String     @id @default(cuid())
+  archiveId String
+  userId    String
+  role      MemberRole
+  joinedAt  DateTime   @default(now())
+  archive   Archive    @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([archiveId, userId])
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  archiveId   String
+  email       String
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  archive     Archive   @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+}
+
+model Memory {
+  id             String       @id @default(cuid())
+  archiveId      String
+  createdById    String
+  kind           MemoryKind
+  title          String?
+  body           String?
+  objectKey      String?
+  mimeType       String?
+  sizeBytes      BigInt?
+  width          Int?
+  height         Int?
+  durationMs     Int?
+  processingState ProcessingState @default(PENDING)
+  createdAt      DateTime     @default(now())
+  publishedAt    DateTime?
+  archive        Archive      @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation(fields: [createdById], references: [id])
+  @@index([archiveId, createdAt])
+}
+
+enum ArchiveStatus { DRAFT WAITING_FOR_SIBLING READY PUBLISHED SEALED }
+enum MemberRole { CREATOR RECEIVER }
+enum MemoryKind { PHOTO VIDEO AUDIO NOTE QUESTION CHAT COURT }
+enum ProcessingState { PENDING PROCESSING READY FAILED }

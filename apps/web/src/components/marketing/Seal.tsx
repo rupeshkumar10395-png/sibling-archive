@@ -1,0 +1,4 @@
+export default function Seal() {
+  const html = '<section class="seal">\n  <div class="container seal-grid">\n    <div>\n      <div class="section-kicker">When you\'re done</div>\n      <h2 class="section-title">Seal the chapter.</h2>\n      <p class="section-lead">Write the date. Add one last note. Then let it sit there for a while. Some things are nicer when they aren\'t constantly updated.</p>\n    </div>\n    <div class="seal-card">\n      <span class="seal-stamp">SEALED / 2026</span>\n      <div class="seal-title">Rupesh × Kashish</div>\n      <div class="mono">This chapter was created on Raksha Bandhan 2026.</div>\n      <div class="seal-line">Reopen date <strong>→ Raksha Bandhan 2031</strong></div>\n    </div>\n  </div>\n</section>';
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+}

@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sibling Archive — Rupesh × Kashish</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root{
+  --paper:#f4ead7; --ink:#201f1b; --red:#ff563d;
+  --yellow:#f4c84a; --blue:#5d63ff; --lime:#b8d94b;
+  --pink:#f29ab0; --cyan:#67cbd7;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Space Grotesk",sans-serif;overflow-x:hidden;
+}
+body:before{
+  content:"";position:fixed;inset:0;z-index:-2;
+  background-image:radial-gradient(rgba(32,31,27,.13) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+.world{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+}
+.world .blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.18}
+.b1{width:380px;height:380px;background:var(--blue);right:-80px;top:-80px}
+.b2{width:300px;height:300px;background:var(--red);left:-100px;bottom:-70px}
+.b3{width:250px;height:250px;background:var(--lime);left:45%;top:35%}
+
+.mono{font-family:"DM Mono",monospace}
+.display{font-weight:700;letter-spacing:-.055em;line-height:.9}
+.wrap{width:min(1060px,92vw);margin:auto;padding:70px 0 100px}
+
+.archive-head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:30px;margin-bottom:28px;
+}
+.kicker{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.6}
+h1{font-size:clamp(48px,8vw,96px);margin:10px 0 0}
+.head-right{text-align:right;font-size:12px;line-height:1.6}
+.pill{
+  display:inline-block;padding:6px 10px;border:1px solid var(--ink);
+  border-radius:100px;font-size:10px;margin-bottom:7px;background:var(--lime);
+}
+
+.stage{
+  min-height:720px;position:relative;
+  border:1.5px solid var(--ink);background:rgba(244,234,215,.68);
+  overflow:hidden;padding:34px;
+}
+.stage-title{
+  position:absolute;left:34px;top:30px;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+}
+.progress{
+  position:absolute;right:34px;top:30px;font-size:10px;opacity:.55;
+}
+.memory{
+  position:absolute;width:300px;background:#fffaf0;
+  border:1px solid var(--ink);padding:11px;
+  box-shadow:8px 9px 0 rgba(32,31,27,.12);
+  opacity:0;transform:translateY(35px) rotate(0deg) scale(.97);
+  transition:.7s cubic-bezier(.2,.8,.2,1);
+  pointer-events:none;
+}
+.memory.active{opacity:1;transform:translateY(0) rotate(var(--r)) scale(1)}
+.memory img,.fake-photo{
+  width:100%;height:245px;display:block;
+}
+.caption{font-size:14px;margin-top:11px}
+.meta{font-size:9px;opacity:.5;margin-top:7px}
+.m1{left:7%;top:105px;--r:-5deg}
+.m2{left:calc(50% - 150px);top:175px;--r:4deg}
+.m3{right:7%;top:105px;--r:-3deg}
+
+.note{
+  position:absolute;left:13%;bottom:42px;width:235px;
+  padding:15px;background:var(--yellow);border:1px solid var(--ink);
+  box-shadow:6px 7px 0 rgba(32,31,27,.15);
+  transform:rotate(-5deg);opacity:0;transition:.7s .1s;
+}
+.note.active{opacity:1}
+.note b{display:block;font-size:12px;margin-bottom:8px}
+.note span{font-size:11px;line-height:1.45}
+
+.voice{
+  position:absolute;right:10%;bottom:50px;width:280px;
+  padding:16px;background:var(--cyan);border:1px solid var(--ink);
+  box-shadow:6px 7px 0 var(--ink);
+  transform:rotate(3deg);opacity:0;transition:.7s .15s;
+}
+.voice.active{opacity:1}
+.voice-head{display:flex;justify-content:space-between;font-size:10px;margin-bottom:13px}
+.wave{height:27px;display:flex;align-items:center;gap:4px}
+.wave i{width:3px;background:var(--ink);border-radius:5px}
+.wave i:nth-child(1){height:7px}.wave i:nth-child(2){height:18px}
+.wave i:nth-child(3){height:12px}.wave i:nth-child(4){height:25px}
+.wave i:nth-child(5){height:15px}.wave i:nth-child(6){height:9px}
+.wave i:nth-child(7){height:22px}.wave i:nth-child(8){height:13px}
+.wave i:nth-child(9){height:19px}.wave i:nth-child(10){height:8px}
+.wave i:nth-child(11){height:24px}.wave i:nth-child(12){height:12px}
+
+.chat{
+  position:absolute;width:310px;right:calc(50% - 155px);top:105px;
+  background:#e9e5dc;border:1px solid var(--ink);border-radius:22px;
+  padding:14px;box-shadow:9px 10px 0 rgba(32,31,27,.13);
+  opacity:0;transform:translateY(35px) scale(.96);transition:.7s;
+}
+.chat.active{opacity:1;transform:translateY(0) scale(1)}
+.chat-top{text-align:center;font-size:9px;opacity:.55;padding-bottom:12px}
+.chat-body{background:#ddd9d0;border-radius:14px;padding:15px;min-height:360px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px}
+.msg{font-size:11px;line-height:1.35;padding:9px 11px;max-width:78%;border-radius:14px}
+.left{background:white;align-self:flex-start;border-bottom-left-radius:4px}
+.right{background:var(--lime);align-self:flex-end;border-bottom-right-radius:4px}
+.chat-time{font-size:8px;opacity:.45}
+
+
+/* Refined sibling Q&A */
+.qa{
+  position:absolute;
+  left:50%; top:88px;
+  width:min(610px,82%);
+  background:#fffaf0;
+  border:1.5px solid var(--ink);
+  padding:30px 32px 24px;
+  box-shadow:12px 13px 0 rgba(32,31,27,.14);
+  opacity:0;
+  transform:translateX(-50%) translateY(30px) rotate(-1deg);
+  transition:.7s cubic-bezier(.2,.8,.2,1);
+  z-index:8;
+}
+.qa.active{opacity:1;transform:translateX(-50%) translateY(0) rotate(-1deg)}
+.qa-kicker{
+  display:inline-block;
+  background:var(--red);
+  color:var(--paper);
+  padding:6px 9px;
+  font-size:9px;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  transform:rotate(-2deg);
+}
+.qa-question{
+  font-size:clamp(26px,4vw,40px);
+  font-weight:700;
+  letter-spacing:-.045em;
+  line-height:1.02;
+  margin:20px 0 22px;
+  max-width:530px;
+}
+.qa-question em{color:var(--red);font-style:normal}
+.answer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 15px;
+  border:1px solid rgba(32,31,27,.2);
+  margin:9px 0;
+  background:#f4ead7;
+  font-size:13px;
+}
+.answer-left{display:flex;align-items:center;gap:11px}
+.answer .dot{
+  width:15px;height:15px;
+  border:1px solid var(--ink);
+  border-radius:50%;
+  flex:none;
+}
+.answer.selected{
+  background:var(--lime);
+  border-color:var(--ink);
+  box-shadow:4px 4px 0 var(--ink);
+  font-weight:700;
+}
+.answer.selected .dot{
+  background:var(--ink);
+  box-shadow:inset 0 0 0 3px var(--lime);
+}
+.answer .tag{
+  font-family:"DM Mono",monospace;
+  font-size:8px;
+  text-transform:uppercase;
+  opacity:.6;
+}
+.qa-reaction{
+  margin-top:17px;
+  padding-top:14px;
+  border-top:1px dashed rgba(32,31,27,.25);
+  font-size:11px;
+  line-height:1.45;
+}
+.qa-reaction b{
+  font-size:9px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.qa-foot{margin-top:13px;font-size:8px;opacity:.48}
+
+
+/* Sequential archive deck */
+.stage{min-height:760px}
+.slides{position:absolute;inset:0}
+.slide{
+  position:absolute;inset:0;padding:74px 7% 42px;
+  opacity:0;visibility:hidden;transform:translateX(55px);
+  transition:opacity .45s ease,transform .55s cubic-bezier(.2,.8,.2,1);
+  display:flex;flex-direction:column;align-items:center;
+}
+.slide.active{opacity:1;visibility:visible;transform:translateX(0)}
+.slide-label{
+  position:absolute;top:30px;left:7%;
+  font-size:9px;letter-spacing:.12em;opacity:.55;
+}
+.photo-card{
+  width:min(720px,82%);padding:12px;background:#fffaf0;
+  border:1.5px solid var(--ink);box-shadow:11px 12px 0 rgba(32,31,27,.14);
+  transform:rotate(-1.5deg);
+}
+.photo-card svg{display:block;width:100%;height:auto}
+.photo-two{transform:rotate(1.3deg)}
+.photo-three{transform:rotate(-2deg)}
+.slide-caption{width:min(720px,82%);margin-top:24px}
+.slide-caption span{font-size:9px;opacity:.55}
+.slide-caption h2{font-size:28px;line-height:1;margin:8px 0 7px;letter-spacing:-.04em}
+.slide-caption p{font-size:12px;line-height:1.5;max-width:570px;margin:0;opacity:.68}
+
+/* Audio */
+.audio-card{
+  width:min(650px,82%);margin-top:40px;padding:32px;
+  background:var(--cyan);border:1.5px solid var(--ink);
+  box-shadow:11px 12px 0 var(--ink);transform:rotate(2deg);
+}
+.audio-top{display:flex;justify-content:space-between;font-size:9px}
+.audio-title{font-size:28px;font-weight:700;margin:55px 0 34px;letter-spacing:-.035em}
+.wave.big{height:45px}
+.wave.big i{width:5px}
+.audio-bottom{font-size:8px;opacity:.6;margin-top:24px}
+
+/* Q&A */
+.qa-card{
+  width:min(690px,84%);background:#fffaf0;border:1.5px solid var(--ink);
+  padding:29px 32px 25px;box-shadow:12px 13px 0 rgba(32,31,27,.14);
+  transform:rotate(-.8deg);
+}
+.qa-kicker{
+  display:inline-block;background:var(--red);color:var(--paper);
+  padding:6px 9px;font-size:9px;letter-spacing:.1em;
+  transform:rotate(-2deg);
+}
+.qa-card h2{
+  font-size:clamp(27px,4vw,41px);line-height:1.02;
+  letter-spacing:-.045em;margin:19px 0 22px;max-width:610px;
+}
+.answer{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:13px 14px;margin:8px 0;background:#f4ead7;
+  border:1px solid rgba(32,31,27,.2);font-size:12px;line-height:1.35;
+}
+.answer.selected{
+  background:var(--lime);border-color:var(--ink);
+  box-shadow:4px 4px 0 var(--ink);
+}
+.answer span{
+  font-family:"DM Mono",monospace;font-size:8px;
+  text-transform:uppercase;opacity:.6;white-space:nowrap;
+}
+.qa-reaction{
+  margin-top:17px;padding-top:13px;
+  border-top:1px dashed rgba(32,31,27,.3);
+  font-size:11px;line-height:1.5;
+}
+.qa-reaction b{font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+
+/* Refined Q&A answer */
+.qa-answer-final{
+  background:var(--lime);
+  border:1.5px solid var(--ink);
+  padding:20px 21px;
+  font-size:clamp(17px,2.3vw,23px);
+  line-height:1.35;
+  box-shadow:6px 6px 0 var(--ink);
+}
+.qa-answer-final em{font-style:normal}
+.bonus-qa .qa-answer-final{background:var(--cyan)}
+
+/* Chat screenshot */
+.chat-card{
+  width:min(470px,76%);
+  background:#f5f5f2;
+  border:1.5px solid var(--ink);
+  border-radius:22px;
+  padding:12px;
+  box-shadow:10px 11px 0 rgba(32,31,27,.16);
+  transform:rotate(1.2deg);
+}
+.chat-top{
+  display:flex;
+  justify-content:space-between;
+  padding:5px 8px 13px;
+  font-size:9px;
+  opacity:.65;
+}
+.chat-window{
+  background:#e4e0d7;
+  border-radius:15px;
+  padding:18px 14px 20px;
+  min-height:430px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:10px;
+}
+.msg{
+  font-size:12px;
+  line-height:1.4;
+  padding:10px 13px;
+  max-width:82%;
+  border-radius:15px;
+}
+.left{background:#fff;align-self:flex-start;border-bottom-left-radius:5px}
+.right{background:var(--lime);align-self:flex-end;border-bottom-right-radius:5px}
+/* Chat */
+.chat-card{
+  width:min(390px,75%);background:#e9e5dc;
+  border:1.5px solid var(--ink);border-radius:22px;padding:13px;
+  box-shadow:10px 11px 0 rgba(32,31,27,.14);
+}
+.chat-top{text-align:center;font-size:9px;opacity:.55;padding-bottom:12px}
+.chat-body{
+  background:#ddd9d0;border-radius:14px;padding:15px;min-height:360px;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:8px;
+}
+.msg{font-size:11px;line-height:1.35;padding:9px 11px;max-width:78%;border-radius:14px}
+.left{background:white;align-self:flex-start;border-bottom-left-radius:4px}
+.right{background:var(--lime);align-self:flex-end;border-bottom-right-radius:4px}
+.chat-time{font-size:8px;opacity:.45}
+.right-time{align-self:flex-end}
+
+/* Final */
+.final-archive{
+  position:relative;width:min(720px,82%);min-height:390px;
+  padding:38px;background:var(--ink);color:var(--paper);
+  box-shadow:13px 14px 0 rgba(32,31,27,.16);
+  transform:rotate(-1.5deg);
+}
+.final-archive .small{font-size:9px;opacity:.55}
+.final-archive h2{font-size:clamp(52px,8vw,82px);line-height:.88;margin:65px 0 75px;letter-spacing:-.06em}
+.archive-mark{
+  position:absolute;right:25px;top:25px;border:1px solid var(--paper);
+  padding:6px 9px;font-size:9px;transform:rotate(5deg);
+}
+.stats{display:flex;gap:35px;font-size:9px;opacity:.55}
+.stats b{display:block;font-size:20px;color:var(--paper);opacity:1;margin-bottom:3px}
+.final-caption{margin-top:28px}
+
+/* Navigation */
+.controls{margin-top:25px}
+.controls button{min-width:130px}
+
+/* Archive navigation */
+.controls{
+  margin-top:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+}
+.controls button{
+  min-width:175px;
+  height:52px;
+  padding:0 22px;
+  border:1.5px solid var(--ink);
+  background:#fffaf0;
+  color:var(--ink);
+  font-family:"DM Mono",monospace;
+  font-size:10px;
+  letter-spacing:.04em;
+  cursor:pointer;
+  box-shadow:5px 5px 0 var(--ink);
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.controls button:hover:not(:disabled){
+  transform:translate(2px,2px);
+  box-shadow:3px 3px 0 var(--ink);
+  background:var(--lime);
+}
+.controls button:active:not(:disabled){
+  transform:translate(5px,5px);
+  box-shadow:0 0 0 var(--ink);
+}
+.controls button:disabled{
+  opacity:.28;
+  cursor:not-allowed;
+  box-shadow:2px 2px 0 rgba(32,31,27,.3);
+}
+.controls .nav-arrow{font-size:15px;vertical-align:-1px}
+.controls .memory-count{min-width:70px;text-align:center;font-size:9px;opacity:.65}
+
+@media(max-width:700px){
+  .controls{gap:8px}
+  .controls button{min-width:0;width:43%;padding:0 8px;font-size:8px;height:48px}
+  .controls .memory-count{min-width:45px;font-size:8px}
+  .qa-answer-final{font-size:16px;padding:16px}
+}
+
+
+/* V5 — Before / After */
+.before-after{
+  width:min(760px,88%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  margin-top:30px;
+}
+.ba-photo{width:43%;text-align:center}
+.fake-photo{
+  height:300px;
+  position:relative;
+  overflow:hidden;
+  border:1.5px solid var(--ink);
+  box-shadow:9px 10px 0 rgba(32,31,27,.14);
+}
+.childhood{background:#f2c88f;filter:saturate(.8)}
+.current{background:#70cbd2}
+.ba-stamp{
+  position:absolute;
+  left:13px;top:13px;
+  background:var(--paper);
+  border:1px solid var(--ink);
+  padding:5px 7px;
+  font-size:8px;
+  z-index:3;
+}
+.ba-year{
+  position:absolute;
+  right:13px;bottom:12px;
+  font-size:10px;
+  z-index:3;
+}
+.ba-photo p{
+  font-size:10px;
+  letter-spacing:.06em;
+  margin:14px 0 0;
+}
+.ba-arrow{
+  font-size:34px;
+  font-weight:700;
+  transform:rotate(-4deg);
+}
+.mini-person{
+  position:absolute;
+  width:70px;height:120px;
+  border:5px solid var(--ink);
+  border-radius:45% 45% 20% 20%;
+  bottom:35px;
+}
+.mini-person:before{
+  content:"";
+  position:absolute;
+  width:47px;height:47px;
+  border:5px solid var(--ink);
+  border-radius:50%;
+  background:#f2d1b0;
+  top:-58px;left:7px;
+}
+.mini-person:after{
+  content:"";
+  position:absolute;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--ink);
+  top:-37px;left:19px;
+  box-shadow:20px 0 0 var(--ink);
+}
+.p1{left:26%;background:var(--red);transform:rotate(-6deg)}
+.p2{right:23%;background:var(--lime);transform:rotate(5deg)}
+.p3{left:24%;background:var(--ink);transform:rotate(-4deg)}
+.p4{right:22%;background:var(--purple);transform:rotate(4deg)}
+.current .mini-person:before{background:#e0a77e}
+
+/* V5 — Forbidden Gallery */
+.forbidden{
+  width:min(720px,84%);
+  background:#242321;
+  color:#f7eedf;
+  padding:23px;
+  border:1.5px solid #242321;
+  box-shadow:11px 12px 0 rgba(32,31,27,.22);
+  transform:rotate(-1deg);
+}
+.forbidden-top{
+  display:flex;
+  justify-content:space-between;
+  font-size:9px;
+  margin-bottom:20px;
+}
+.redacted{color:var(--red)}
+.forbidden-grid{
+  display:flex;
+  justify-content:center;
+  gap:13px;
+  min-height:300px;
+}
+.forbidden-photo{
+  width:30%;
+  height:260px;
+  background:#d8c8ae;
+  border:5px solid #f7eedf;
+  position:relative;
+  color:#242321;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+  font-weight:900;
+  overflow:hidden;
+}
+.forbidden-photo:after{
+  content:"";
+  position:absolute;inset:35px 18px;
+  border:2px dashed #242321;
+  opacity:.55;
+}
+.tilt-a{transform:rotate(-7deg);background:#f4c84a}
+.tilt-b{transform:rotate(3deg);background:#70cbd2}
+.tilt-c{transform:rotate(7deg);background:#f29ab0}
+.forbidden-photo span{
+  position:absolute;top:8px;left:8px;
+  font-family:"DM Mono",monospace;font-size:8px;
+}
+.scribble{transform:rotate(-14deg);font-family:"DM Mono",monospace}
+.forbidden-warning{
+  border-top:1px dashed #f7eedf;
+  margin-top:18px;padding-top:15px;
+  display:flex;flex-direction:column;gap:5px;
+  font-size:10px;line-height:1.4;
+}
+.forbidden-warning span{opacity:.55}
+
+/* V5 — Rare Footage */
+.rare-footage{
+  width:min(690px,82%);
+  background:#111;
+  border:1.5px solid var(--ink);
+  padding:14px;
+  box-shadow:12px 13px 0 rgba(32,31,27,.2);
+  transform:rotate(1deg);
+}
+.rare-screen{
+  height:360px;
+  position:relative;
+  background:#5f6c55;
+  overflow:hidden;
+  border:1px solid #f4ead7;
+}
+.rec{
+  position:absolute;top:13px;left:15px;
+  color:#fff;font-size:9px;z-index:5;
+}
+.rare-scene{
+  position:absolute;inset:0;
+  background:linear-gradient(165deg,#6f8164 0 55%,#bda56e 56%);
+}
+.rare-person{
+  position:absolute;bottom:35px;
+  width:75px;height:150px;
+  background:#262626;
+  border-radius:45% 45% 15% 15%;
+}
+.rare-person:before{
+  content:"";position:absolute;
+  width:52px;height:52px;border-radius:50%;
+  background:#dcae8b;border:4px solid #262626;
+  top:-58px;left:7px;
+}
+.rare-person.one{left:29%;transform:rotate(-6deg)}
+.rare-person.two{right:27%;transform:rotate(5deg);height:130px}
+.rare-object{position:absolute;left:50%;bottom:58px;font-size:42px}
+.play-circle{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:62px;height:62px;border-radius:50%;
+  background:rgba(244,234,215,.9);color:#242321;
+  display:flex;align-items:center;justify-content:center;
+  font-size:19px;padding-left:3px;
+}
+.rare-time{
+  position:absolute;right:13px;bottom:11px;
+  color:#fff;font-size:8px;
+}
+.rare-meta{
+  display:flex;justify-content:space-between;
+  color:#f4ead7;padding:12px 3px 1px;
+  font-size:8px;opacity:.65;
+}
+
+/* V5 — Sibling Court */
+.court{
+  width:min(720px,84%);
+  background:#f4ead7;
+  border:1.5px solid var(--ink);
+  box-shadow:12px 13px 0 rgba(32,31,27,.16);
+  transform:rotate(-1.2deg);
+}
+.court-header{
+  padding:15px 19px;
+  border-bottom:1px solid var(--ink);
+  display:flex;justify-content:space-between;
+  font-size:9px;
+}
+.case-no{opacity:.55}
+.court-body{padding:27px 32px}
+.gavel{font-size:34px}
+.charge{font-size:8px;opacity:.5;margin-top:17px}
+.court-body h2{
+  font-size:clamp(27px,4vw,42px);
+  line-height:1;letter-spacing:-.045em;
+  margin:9px 0 24px;
+}
+.court-evidence{
+  background:#fffaf0;
+  border:1px dashed var(--ink);
+  padding:15px 17px;
+  display:grid;grid-template-columns:120px 1fr;
+  gap:7px 12px;
+  font-size:10px;
+}
+.court-evidence span{opacity:.5;font-size:8px}
+.court-evidence p{margin:0}
+.verdict{
+  display:inline-block;
+  background:var(--red);
+  color:#fffaf0;
+  padding:9px 12px;
+  font-family:"DM Mono",monospace;
+  font-size:8px;
+  margin-top:22px;
+  transform:rotate(1.5deg);
+}
+.court-maker{
+  padding:16px 32px 20px;
+  border-top:1px dashed var(--ink);
+}
+.court-maker span{font-size:8px;opacity:.5}
+.court-maker p{font-size:12px;margin:8px 0 0}
+
+/* V5 — Receiver contribution */
+.receiver-card{
+  width:min(720px,84%);
+  background:#fffaf0;
+  border:1.5px solid var(--ink);
+  padding:27px 30px 25px;
+  box-shadow:11px 12px 0 rgba(32,31,27,.14);
+  transform:rotate(.8deg);
+}
+.receiver-header{
+  display:flex;justify-content:space-between;
+  align-items:center;font-size:9px;
+}
+.pill{
+  background:var(--lime);
+  border:1px solid var(--ink);
+  padding:6px 9px;
+  font-size:8px;
+}
+.receiver-icon{
+  width:55px;height:55px;
+  border-radius:50%;
+  background:var(--cyan);
+  border:1.5px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin-top:28px;
+}
+.receiver-card h2{
+  font-size:clamp(28px,4vw,43px);
+  letter-spacing:-.05em;line-height:.98;
+  margin:17px 0 9px;
+}
+.receiver-card>p{
+  max-width:580px;font-size:11px;line-height:1.5;opacity:.65;
+}
+.receiver-actions{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;margin-top:22px;
+}
+.receiver-action{
+  min-height:92px;
+  border:1px solid var(--ink);
+  background:#f4ead7;
+  text-align:left;padding:12px;
+  cursor:pointer;
+  transition:.15s ease;
+}
+.receiver-action:hover{
+  transform:translateY(-3px) rotate(-1deg);
+  background:var(--lime);
+  box-shadow:4px 4px 0 var(--ink);
+}
+.receiver-action span{font-size:19px;display:block;margin-bottom:8px}
+.receiver-action b{display:block;font-family:"DM Mono",monospace;font-size:8px}
+.receiver-action small{display:block;font-size:8px;opacity:.55;margin-top:4px}
+.receiver-note{
+  margin-top:15px;
+  border-left:4px solid var(--red);
+  padding:9px 12px;
+  background:#f8eee5;
+}
+.receiver-note span{font-size:8px;opacity:.5}
+.receiver-note p{font-size:10px;margin:5px 0 0;line-height:1.4}
+
+/* V5 — Receiver added memory */
+.receiver-added{
+  width:min(720px,84%);
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:15px;align-items:stretch;
+}
+.added-photo{min-height:330px}
+.added-art{
+  height:100%;
+  background:#f29ab0;
+  display:flex;align-items:center;justify-content:center;
+}
+.added-art .heart{font-size:90px}
+.added-note{
+  background:#f4ead7;
+  border:1.5px solid var(--ink);
+  padding:28px 25px;
+  box-shadow:9px 10px 0 rgba(32,31,27,.12);
+  transform:rotate(1.5deg);
+}
+.added-note>span{font-size:8px;opacity:.5}
+.added-note h2{
+  font-size:31px;line-height:1;
+  letter-spacing:-.04em;margin:28px 0 17px;
+}
+.added-note p{font-size:11px;line-height:1.55;opacity:.7}
+.added-note strong{font-family:"DM Mono",monospace;font-size:9px;display:block;margin-top:20px}
+
+/* V5 — responsive additions */
+@media(max-width:700px){
+  .before-after{width:94%;gap:8px}
+  .fake-photo{height:220px}
+  .ba-photo p{font-size:8px}
+  .forbidden{width:92%;padding:15px}
+  .forbidden-grid{min-height:230px}
+  .forbidden-photo{height:210px;font-size:25px}
+  .rare-footage{width:92%}
+  .rare-screen{height:280px}
+  .court{width:92%}
+  .court-body{padding:22px}
+  .court-evidence{grid-template-columns:1fr;gap:4px}
+  .court-maker{padding:15px 22px 19px}
+  .receiver-card{width:92%;padding:22px}
+  .receiver-actions{grid-template-columns:1fr}
+  .receiver-action{min-height:70px}
+  .receiver-added{width:92%;grid-template-columns:1fr}
+  .added-photo{min-height:260px}
+}
+
+
+/* V6 — mobile cleanup */
+@media (max-width: 700px){
+  .wrap{width:94vw;padding:28px 0 42px}
+  .archive-head{margin-bottom:14px;gap:12px}
+  .stage{
+    min-height:590px;
+    padding:18px;
+  }
+  .stage-title{left:18px;top:18px;font-size:9px}
+  .progress{right:18px;top:18px;font-size:9px}
+  .slide{padding:58px 18px 24px}
+  .slide-label{top:18px;left:18px;font-size:8px}
+  .slide-caption{width:92%;margin-top:18px}
+  .photo-card,.qa-card,.chat-card,.rare-footage,.court,.receiver-card,.final-archive{width:92%;max-width:none}
+  .photo-card svg{max-height:260px}
+  .before-after{margin-top:8px}
+  .controls{margin-top:12px;gap:7px}
+  .controls button{width:42%;height:46px;min-width:0;font-size:8px;padding:0 6px}
+  .controls .memory-count{min-width:38px;font-size:8px}
+  .explain{margin-top:10px}
+}
+
+</style>
+</head>
+<body>
+<div class="world"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<main class="wrap">
+  <header class="archive-head">
+    <div>
+      <div class="kicker mono">SIBLING ARCHIVE / DEMO</div>
+      <h1 class="display">RUPESH ×<br>KASHISH</h1>
+    </div>
+    <div class="head-right mono">
+      <div class="pill">PRIVATE ARCHIVE</div><br>
+      2 siblings · 1 shared brain cell
+    </div>
+  </header>
+
+  <section class="stage" id="stage">
+    <div class="stage-title mono">THE CHAOS YEARS</div>
+    <div class="progress mono"><span id="num">01</span> / 17</div>
+
+    <div class="slides" id="slides">
+
+      <!-- 01 PHOTO -->
+      <article class="slide active" data-slide="1">
+        <div class="slide-label mono">MEMORY / 01</div>
+        <div class="photo-card photo-one">
+          <svg viewBox="0 0 700 470" xmlns="http://www.w3.org/2000/svg">
+            <rect width="700" height="470" fill="#b9d5db"/>
+            <circle cx="150" cy="150" r="62" fill="#f2d1b0" stroke="#201f1b" stroke-width="7"/>
+            <path d="M85 390 Q150 235 220 390" fill="#ff563d" stroke="#201f1b" stroke-width="7"/>
+            <circle cx="470" cy="170" r="55" fill="#dcae8b" stroke="#201f1b" stroke-width="7"/>
+            <path d="M410 390 Q470 255 535 390" fill="#5d63ff" stroke="#201f1b" stroke-width="7"/>
+            <circle cx="130" cy="143" r="9"/><circle cx="171" cy="143" r="9"/>
+            <path d="M130 182 Q151 201 174 180" fill="none" stroke="#201f1b" stroke-width="6"/>
+            <circle cx="451" cy="164" r="8"/><circle cx="488" cy="164" r="8"/>
+            <path d="M450 198 Q470 215 493 196" fill="none" stroke="#201f1b" stroke-width="6"/>
+            <text x="30" y="435" font-family="monospace" font-size="18" fill="#201f1b">CAMERA ROLL / 2018</text>
+          </svg>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">JUNE 2018 · SOMEWHERE</span>
+          <h2>we forgot this existed.</h2>
+          <p>Found 8 years later. Neither sibling accepts responsibility.</p>
+        </div>
+      </article>
+
+      <!-- 02 PHOTO -->
+      <article class="slide" data-slide="2">
+        <div class="slide-label mono">MEMORY / 02</div>
+        <div class="photo-card photo-two">
+          <svg viewBox="0 0 700 470" xmlns="http://www.w3.org/2000/svg">
+            <rect width="700" height="470" fill="#f4c84a"/>
+            <rect x="72" y="55" width="556" height="300" rx="10" fill="#f4ead7" stroke="#201f1b" stroke-width="7"/>
+            <circle cx="350" cy="175" r="82" fill="#f29ab0" stroke="#201f1b" stroke-width="7"/>
+            <path d="M205 330 Q350 205 495 330" fill="#b8d94b" stroke="#201f1b" stroke-width="7"/>
+            <path d="M270 165 Q350 90 430 165" fill="none" stroke="#201f1b" stroke-width="11"/>
+            <text x="180" y="420" font-family="monospace" font-size="18">THE COOL ERA™</text>
+          </svg>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">AUG 2019 · DEFINITELY NOT COOL</span>
+          <h2>the day we thought we were cool.</h2>
+          <p>We have reviewed the evidence. The verdict remains: absolutely not.</p>
+        </div>
+      </article>
+
+      <!-- 03 BEFORE / AFTER -->
+      <article class="slide" data-slide="3">
+        <div class="slide-label mono">BEFORE / AFTER · 01</div>
+        <div class="before-after">
+          <div class="ba-photo">
+            <div class="fake-photo childhood">
+              <span class="ba-stamp mono">THEN</span>
+              <div class="mini-person p1"></div><div class="mini-person p2"></div>
+              <div class="ba-year mono">2012</div>
+            </div>
+            <p class="mono">“WE HAD POTENTIAL.”</p>
+          </div>
+          <div class="ba-arrow">→</div>
+          <div class="ba-photo">
+            <div class="fake-photo current">
+              <span class="ba-stamp mono">NOW</span>
+              <div class="mini-person p3"></div><div class="mini-person p4"></div>
+              <div class="ba-year mono">2026</div>
+            </div>
+            <p class="mono">“WE USED IT ALL UP.”</p>
+          </div>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">RUPESH × KASHISH</span>
+          <h2>before & after.</h2>
+          <p>Same people. Slightly taller. Still making questionable decisions.</p>
+        </div>
+      </article>
+
+      <!-- 04 PHOTO -->
+      <article class="slide" data-slide="4">
+        <div class="slide-label mono">MEMORY / 03</div>
+        <div class="photo-card photo-three">
+          <svg viewBox="0 0 700 470" xmlns="http://www.w3.org/2000/svg">
+            <rect width="700" height="470" fill="#d8c8ae"/>
+            <rect x="70" y="65" width="560" height="300" fill="#5d63ff" stroke="#201f1b" stroke-width="8"/>
+            <path d="M120 320 L235 190 L320 285 L430 150 L575 320" fill="none" stroke="#f4ead7" stroke-width="13"/>
+            <circle cx="520" cy="125" r="40" fill="#f4c84a"/>
+            <text x="105" y="420" font-family="monospace" font-size="18">WHY DID WE KEEP THIS?</text>
+          </svg>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">DEC 2016 · EVIDENCE</span>
+          <h2>why did nobody stop us?</h2>
+          <p>No context. No explanation. Just vibes and a suspiciously large number of screenshots.</p>
+        </div>
+      </article>
+
+      <!-- 05 FORBIDDEN GALLERY -->
+      <article class="slide" data-slide="5">
+        <div class="slide-label mono">FORBIDDEN GALLERY · 01</div>
+        <div class="forbidden">
+          <div class="forbidden-top">
+            <span class="mono">DO NOT FORWARD</span>
+            <span class="redacted mono">████████</span>
+          </div>
+          <div class="forbidden-grid">
+            <div class="forbidden-photo tilt-a"><span>NO.</span><div class="scribble">😭</div></div>
+            <div class="forbidden-photo tilt-b"><span>NO.</span><div class="scribble">WHY</div></div>
+            <div class="forbidden-photo tilt-c"><span>NO.</span><div class="scribble">DELETE</div></div>
+          </div>
+          <div class="forbidden-warning">
+            <b>PHOTOS NEVER ALLOWED TO LEAVE THE FAMILY CHAT.</b>
+            <span>Access granted exclusively to people who were there.</span>
+          </div>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">CLASSIFIED FAMILY MATERIAL</span>
+          <h2>the forbidden gallery.</h2>
+          <p>The photos that somehow survived the family chat — but absolutely should not escape it.</p>
+        </div>
+      </article>
+
+      <!-- 06 AUDIO -->
+      <article class="slide" data-slide="6">
+        <div class="slide-label mono">MEMORY / 04 · AUDIO</div>
+        <div class="audio-card">
+          <div class="audio-top mono"><span>🎙 VOICE NOTE</span><span>0:08</span></div>
+          <div class="audio-title">“MUM HE TOOK MY CHARGER.”</div>
+          <div class="wave big">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="audio-bottom mono">RECORDED AT 11:47 PM · ABSOLUTELY ESSENTIAL EVIDENCE</div>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">THE AUDIO DEPARTMENT</span>
+          <h2>some things should've stayed unheard.</h2>
+          <p>We preserved them anyway. For historical accuracy, obviously.</p>
+        </div>
+      </article>
+
+      <!-- 07 RARE FOOTAGE -->
+      <article class="slide" data-slide="7">
+        <div class="slide-label mono">RARE FOOTAGE · 01</div>
+        <div class="rare-footage">
+          <div class="rare-screen">
+            <div class="rec mono">● REC 00:17:42</div>
+            <div class="rare-scene">
+              <div class="rare-person one"></div>
+              <div class="rare-person two"></div>
+              <div class="rare-object">🎂</div>
+            </div>
+            <div class="play-circle">▶</div>
+            <div class="rare-time mono">00:07 / 00:19</div>
+          </div>
+          <div class="rare-meta">
+            <span class="mono">FILE_0007.MOV</span>
+            <span class="mono">NEVER POSTED</span>
+          </div>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">RECOVERED FROM OLD PHONE</span>
+          <h2>rare footage.</h2>
+          <p>Some moments never leave the gallery. This one barely left the camera roll.</p>
+        </div>
+      </article>
+
+      <!-- 08 Q&A -->
+      <article class="slide" data-slide="8">
+        <div class="slide-label mono">SIBLING TEST / 01</div>
+        <div class="qa-card">
+          <div class="qa-kicker">KASHISH'S OFFICIAL RECORD</div>
+          <h2>If your brother had a warning label, what would it say?</h2>
+          <div class="qa-answer-final">⚠️ <em>May cause headaches, arguments, and sudden loss of patience.</em></div>
+          <div class="qa-reaction"><b>Filed by Kashish:</b> “Honestly, this should've been printed on his school ID.”</div>
+        </div>
+      </article>
+
+      <!-- 09 Q&A -->
+      <article class="slide" data-slide="9">
+        <div class="slide-label mono">SIBLING TEST / 02</div>
+        <div class="qa-card">
+          <div class="qa-kicker">KASHISH'S OFFICIAL RECORD</div>
+          <h2>Who would win in a fight?</h2>
+          <div class="qa-answer-final">Physically? Him. Mentally? Also him, because he has absolutely no idea what’s happening.</div>
+          <div class="qa-reaction"><b>Filed by Kashish:</b> “I would like to formally apologize to nobody.”</div>
+        </div>
+      </article>
+
+      <!-- 10 Q&A -->
+      <article class="slide" data-slide="10">
+        <div class="slide-label mono">SIBLING TEST / 03</div>
+        <div class="qa-card">
+          <div class="qa-kicker">KASHISH'S OFFICIAL RECORD</div>
+          <h2>What is your brother’s biggest red flag?</h2>
+          <div class="qa-answer-final">🚩 He says “trust me” before doing something incredibly stupid.</div>
+          <div class="qa-reaction"><b>Filed by Kashish:</b> “The words ‘trust me’ have never once improved the situation.”</div>
+        </div>
+      </article>
+
+      <!-- 11 Q&A -->
+      <article class="slide" data-slide="11">
+        <div class="slide-label mono">SIBLING TEST / 04</div>
+        <div class="qa-card">
+          <div class="qa-kicker">KASHISH'S OFFICIAL RECORD</div>
+          <h2>What would you do if your brother disappeared for a week?</h2>
+          <div class="qa-answer-final">Enjoy the peace. Then wonder who’s going to annoy me now.</div>
+          <div class="qa-reaction"><b>Filed by Kashish:</b> “Day 1: peaceful. Day 4: suspiciously quiet. Day 7: okay, where is this idiot?”</div>
+        </div>
+      </article>
+
+      <!-- 12 Q&A -->
+      <article class="slide" data-slide="12">
+        <div class="slide-label mono">SIBLING TEST / 05</div>
+        <div class="qa-card">
+          <div class="qa-kicker">KASHISH'S OFFICIAL RECORD</div>
+          <h2>If your brother was a vegetable, what would he be?</h2>
+          <div class="qa-answer-final">🥔 A potato. Mostly useless, but somehow always involved.</div>
+          <div class="qa-reaction"><b>Filed by Kashish:</b> “Like that one potato in every dish... you didn’t ask for it, but here he is.”</div>
+        </div>
+      </article>
+
+      <!-- 13 SIBLING COURT -->
+      <article class="slide" data-slide="13">
+        <div class="slide-label mono">SIBLING COURT · CASE 001</div>
+        <div class="court">
+          <div class="court-header">
+            <span class="mono">THE PEOPLE vs. RUPESH</span>
+            <span class="case-no mono">CASE #R-500</span>
+          </div>
+          <div class="court-body">
+            <div class="gavel">⚖</div>
+            <div class="charge mono">CHARGE</div>
+            <h2>Borrowing the charger without returning it.</h2>
+            <div class="court-evidence">
+              <span class="mono">EVIDENCE A</span>
+              <p>“Bhai 5 min ke liye de.”</p>
+              <span class="mono">CURRENT STATUS</span>
+              <p>Charger missing for 11 months.</p>
+            </div>
+            <div class="verdict">GUILTY OF CHARGING IN BAD FAITH.</div>
+          </div>
+          <div class="court-maker">
+            <span class="mono">STATEMENT FROM THE MAKER · KASHISH</span>
+            <p>“I rest my case. Also, I want my charger back.”</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- 14 CHAT -->
+      <article class="slide" data-slide="14">
+        <div class="slide-label mono">MEMORY / CHAT EVIDENCE</div>
+        <div class="chat-card">
+          <div class="chat-top mono"><span>KASHISH ↔ RUPESH</span><span>11:48 PM</span></div>
+          <div class="chat-window">
+            <div class="msg left"><b>Brother:</b> bhai 500 bhej</div>
+            <div class="msg right"><b>Sister:</b> kyun</div>
+            <div class="msg left"><b>Brother:</b> important kaam hai</div>
+            <div class="msg right"><b>Sister:</b> kya</div>
+            <div class="msg left"><b>Brother:</b> <strong>tujhe nahi bata sakta</strong></div>
+            <div class="msg right"><b>Sister:</b> toh paise kyun maang raha hai</div>
+            <div class="msg left"><b>Brother:</b> <strong>trust issues nahi, trust basis pe maang raha hoon</strong> 😭</div>
+          </div>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">CHAT / PROBABLY A BAD FINANCIAL DECISION</span>
+          <h2>the evidence is unfortunately clear.</h2>
+          <p>Some conversations deserve to be archived. Some deserve to be deleted. This one did both.</p>
+        </div>
+      </article>
+
+      <!-- 15 RECEIVER ADD -->
+      <article class="slide" data-slide="15">
+        <div class="slide-label mono">SHARED ARCHIVE · 01</div>
+        <div class="receiver-card">
+          <div class="receiver-header">
+            <span class="mono">KASHISH → RUPESH</span>
+            <span class="pill">YOUR TURN</span>
+          </div>
+          <div class="receiver-icon">＋</div>
+          <h2>Wait. You can add to this too.</h2>
+          <p>The archive isn't a one-person scrapbook. The receiver can throw in a photo, write a tiny note, or add the memory you completely forgot.</p>
+          <div class="receiver-actions">
+            <button class="receiver-action" type="button"><span>＋</span><b>ADD PHOTO</b><small>from your camera roll</small></button>
+            <button class="receiver-action" type="button"><span>✎</span><b>ADD NOTE</b><small>say what you remember</small></button>
+            <button class="receiver-action" type="button"><span>♡</span><b>ADD MEMORY</b><small>“remember when…”</small></button>
+          </div>
+          <div class="receiver-note">
+            <span class="mono">KASHISH ADDED</span>
+            <p>“Remember when we got lost for 40 minutes and still blamed Google Maps?”</p>
+          </div>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">TWO-WAY ARCHIVE</span>
+          <h2>not just your memories.</h2>
+          <p>The other sibling gets to leave evidence too.</p>
+        </div>
+      </article>
+
+      <!-- 16 RECEIVER MEMORY -->
+      <article class="slide" data-slide="16">
+        <div class="slide-label mono">SHARED ARCHIVE · 02</div>
+        <div class="receiver-added">
+          <div class="added-photo">
+            <div class="fake-photo added-art"><span class="ba-stamp mono">ADDED BY KASHISH</span><div class="heart">♡</div></div>
+          </div>
+          <div class="added-note">
+            <span class="mono">NEW MEMORY · JUST NOW</span>
+            <h2>“Remember this?</h2>
+            <p>We were supposed to be taking one normal photo.</p>
+            <p>Then someone blinked. Then someone laughed. Then somehow this became the best one.</p>
+            <strong>— Kashish</strong>
+          </div>
+        </div>
+        <div class="slide-caption">
+          <span class="mono">RECEIVER CONTRIBUTION</span>
+          <h2>the archive talks back.</h2>
+          <p>Every sibling gets a chance to add their version of the story.</p>
+        </div>
+      </article>
+
+      <!-- 17 FINAL -->
+      <article class="slide" data-slide="17">
+        <div class="slide-label mono">ARCHIVE / 001</div>
+        <div class="final-archive">
+          <div class="archive-mark mono">PRIVATE · R&K</div>
+          <div class="mono small">THE SIBLING ARCHIVE</div>
+          <h2>THE CHAOS<br>YEARS</h2>
+          <div class="stats">
+            <div><b>2012–2026</b>range</div>
+            <div><b>384</b>memories</div>
+            <div><b>2</b>siblings</div>
+            <div><b>∞</b>denial</div>
+          </div>
+        </div>
+        <div class="slide-caption final-caption">
+          <span class="mono">RUPESH × KASHISH</span>
+          <h2>okay. this is officially a thing now.</h2>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <div class="controls">
+      <button id="prev" type="button"><span class="nav-arrow">←</span>&nbsp; PREVIOUS MEMORY</button>
+      <div class="memory-count mono"><span id="counter">1</span> / 17</div>
+      <button id="next" type="button">NEXT MEMORY &nbsp;<span class="nav-arrow">→</span></button>
+  </div>
+
+  <p class="explain" id="explain">
+    Start with one memory. Then keep going. The archive slowly becomes yours.
+  </p>
+</main>
+
+<script>
+const slides = [...document.querySelectorAll('.slide')];
+const total = slides.length;
+let current = 0;
+
+const num = document.getElementById('num');
+const counter = document.getElementById('counter');
+const explain = document.getElementById('explain');
+
+const captions = [
+  "We forgot this existed. The archive has decided it deserves a second life.",
+  "Evidence that the cool era was mostly a misunderstanding.",
+  "Same people. Slightly taller. Still making questionable decisions.",
+  "No context. No explanation. Just vibes.",
+  "The photos that somehow survived the family chat — but absolutely should not escape it.",
+  "Some things should've stayed unheard. We archived them anyway.",
+  "Some moments never leave the gallery. This one barely left the camera roll.",
+  "Kashish has entered the official sibling record. Proceed at your own risk.",
+  "A completely objective assessment. Obviously.",
+  "The words “trust me” have been entered into evidence.",
+  "Peace is apparently temporary.",
+  "The potato verdict is final.",
+  "The court finds Rupesh guilty. Kashish would like her charger back.",
+  "The evidence is unfortunately clear.",
+  "The archive is two-way. The receiver gets to add evidence too.",
+  "The archive talks back. Every sibling gets their version of the story.",
+  "Okay. This is officially a thing now."
+];
+
+function show(index){
+  current = Math.max(0, Math.min(index, total - 1));
+  slides.forEach((slide,i)=>slide.classList.toggle('active',i === current));
+  const n = String(current + 1).padStart(2,'0');
+  num.textContent = n;
+  counter.textContent = current + 1;
+  explain.textContent = captions[current];
+
+  document.getElementById('prev').disabled = current === 0;
+  document.getElementById('next').disabled = current === total - 1;
+}
+
+document.getElementById('next').onclick = () => show(current + 1);
+document.getElementById('prev').onclick = () => show(current - 1);
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' || e.key === ' ') show(current + 1);
+  if(e.key === 'ArrowLeft') show(current - 1);
+});
+
+let touchStart = null;
+document.getElementById('stage').addEventListener('touchstart', e => {
+  touchStart = e.changedTouches[0].clientX;
+}, {passive:true});
+document.getElementById('stage').addEventListener('touchend', e => {
+  if(touchStart === null) return;
+  const dx = e.changedTouches[0].clientX - touchStart;
+  if(Math.abs(dx) > 45) show(current + (dx < 0 ? 1 : -1));
+  touchStart = null;
+}, {passive:true});
+
+document.querySelectorAll('.receiver-action').forEach(button => {
+  button.addEventListener('click', () => {
+    const type = button.querySelector('b').textContent;
+    const original = button.innerHTML;
+    button.innerHTML = `<span>✓</span><b>ADDED</b><small>${type.toLowerCase()} saved to the archive</small>`;
+    button.style.background = 'var(--lime)';
+    setTimeout(() => {
+      button.innerHTML = original;
+      button.style.background = '';
+    }, 1800);
+  });
+});
+
+show(0);
+</script>
+</body>
+</html>

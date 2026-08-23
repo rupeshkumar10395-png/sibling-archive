@@ -1,0 +1,7 @@
+{
+  "name": "@sibling-archive/db",
+  "private": true,
+  "scripts": { "db:generate": "prisma generate", "db:migrate": "prisma migrate dev" },
+  "dependencies": { "@prisma/client": "latest" },
+  "devDependencies": { "prisma": "latest" }
+}

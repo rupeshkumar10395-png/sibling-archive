@@ -1,0 +1,5 @@
+{
+  "name": "@sibling-archive/shared",
+  "private": true,
+  "scripts": { "typecheck": "tsc --noEmit" }
+}

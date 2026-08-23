@@ -1,0 +1,15 @@
+{
+  "name": "sibling-archive",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @sibling-archive/web dev",
+    "dev:api": "pnpm --filter @sibling-archive/api dev",
+    "dev:worker": "pnpm --filter @sibling-archive/worker dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}
