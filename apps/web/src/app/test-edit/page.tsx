@@ -54,7 +54,8 @@ function EditArchiveContent() {
 
   const fetchCatalogue = async () => {
     try {
-      const res = await fetch("http://localhost:4000/memories/default-questions");
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const res = await fetch(`${API_BASE_URL}/memories/default-questions`);
       const data = await res.json();
       setCatalogue(data);
     } catch (err) {
@@ -65,7 +66,8 @@ function EditArchiveContent() {
   const loadMemories = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:4000/archives/${archiveId}/memories`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const res = await fetch(`${API_BASE_URL}/archives/${archiveId}/memories`, {
         headers: { "Authorization": `Bearer ${token}` },
       });
       const data = await res.json();
@@ -85,13 +87,27 @@ function EditArchiveContent() {
   const createMemory = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:4000/archives/${archiveId}/memories`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+      // Payload construction for Q&A vs others
+      const payload: any = { type, position };
+      if (type === "QUESTION") {
+        payload.content = { answer: content };
+      } else {
+        payload.content = content;
+      }
+
+      if (selectedDefaultQuestionId) {
+        payload.defaultQuestionId = selectedDefaultQuestionId;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/archives/${archiveId}/memories`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ type, content, position, defaultQuestionId: selectedDefaultQuestionId }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       setApiStatus({ status: res.status, message: res.ok ? "Created" : (data.message || "Error") });
@@ -107,7 +123,8 @@ function EditArchiveContent() {
 
   const deleteMemory = async (memoryId: string) => {
     try {
-      const res = await fetch(`http://localhost:4000/archives/${archiveId}/memories/${memoryId}`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const res = await fetch(`${API_BASE_URL}/archives/${archiveId}/memories/${memoryId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` },
       });
@@ -133,17 +150,27 @@ function EditArchiveContent() {
     if (!editingMemory) return;
 
     try {
-      const res = await fetch(`http://localhost:4000/archives/${archiveId}/memories/${editingMemory.id}`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+      // Ensure payload for Q&A edit uses content object
+      const payload: any = {
+        type: editingMemory.type,
+        position: editingMemory.position,
+      };
+
+      if (editingMemory.type === "QUESTION") {
+        payload.content = { answer: editingMemory.content };
+      } else {
+        payload.content = editingMemory.content;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/archives/${archiveId}/memories/${editingMemory.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-          type: editingMemory.type,
-          content: editingMemory.content,
-          position: editingMemory.position
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       setApiStatus({ status: res.status, message: res.ok ? "Updated" : (data.message || "Error") });

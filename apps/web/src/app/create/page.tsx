@@ -17,7 +17,8 @@ export default function CreateArchivePage() {
     setResult(null);
 
     try {
-      const response = await fetch("http://localhost:4000/archives", {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const response = await fetch(`${API_BASE_URL}/archives`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),
@@ -70,25 +71,6 @@ export default function CreateArchivePage() {
       {error && (
         <div style={{ padding: "15px", backgroundColor: "#ffebee", color: "#c62828", borderRadius: "4px", marginBottom: "20px", border: "1px solid #ef9a9a" }}>
           <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {result && (
-        <div style={{ padding: "20px", backgroundColor: "#f5f5f5", borderRadius: "8px", border: "1px solid #ddd", lineHeight: "1.6" }}>
-          <h2 style={{ marginTop: 0 }}>Archive Created!</h2>
-          <p><strong>ID:</strong> <code>{result.archive.id}</code></p>
-          <p><strong>Slug:</strong> <code>{result.archive.slug}</code></p>
-          <p><strong>Edit Token:</strong> <code style={{ backgroundColor: "#eee", padding: "2px 4px" }}>{result.editToken}</code></p>
-
-          <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px" }}>
-            <strong>Test Edit URL:</strong><br />
-            <a
-              href={`/test-edit?archiveId=${result.archive.id}&token=${result.editToken}`}
-              style={{ color: "#0070f3", fontWeight: "bold", textDecoration: "underline", display: "block", marginTop: "10px" }}
-            >
-              Go to Edit Dashboard $\rightarrow$
-            </a>
-          </div>
         </div>
       )}
     </div>
