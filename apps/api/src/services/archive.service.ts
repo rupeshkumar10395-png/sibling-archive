@@ -7,8 +7,37 @@ import { prisma as defaultPrisma } from "../lib/prisma.js";
 export class ArchiveService {
   constructor(private readonly db: PrismaClient = defaultPrisma) {}
 
+  async getArchiveById(id: string) {
+    const archive = await this.db.archive.findUnique({
+      where: { id },
+    });
+    if (!archive) return null;
+    return {
+      id: archive.id,
+      title: archive.title,
+      slug: archive.slug,
+      createdAt: archive.createdAt.toISOString(),
+      updatedAt: archive.updatedAt.toISOString(),
+    };
+  }
+
+  async getArchiveBySlug(slug: string) {
+    const archive = await this.db.archive.findUnique({
+      where: { slug },
+    });
+    if (!archive) return null;
+    return {
+      id: archive.id,
+      title: archive.title,
+      slug: archive.slug,
+      createdAt: archive.createdAt.toISOString(),
+      updatedAt: archive.updatedAt.toISOString(),
+    };
+  }
+
   /**
    * Creates a new Archive and its initial ArchiveAccess record atomically.
+
    * Only the token hash is stored in the database.
    */
   async createArchive(input: CreateArchiveRequest): Promise<CreateArchiveResponse> {

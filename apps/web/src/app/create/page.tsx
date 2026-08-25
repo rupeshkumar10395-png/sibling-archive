@@ -34,7 +34,7 @@ export default function CreateArchivePage() {
         throw new Error("API response missing required archive ID or edit token.");
       }
 
-      window.location.href = `/test-edit?archiveId=${encodeURIComponent(data.archive.id)}&token=${encodeURIComponent(data.editToken)}`;
+      window.location.href = `/builder?archiveId=${encodeURIComponent(data.archive.id)}&token=${encodeURIComponent(data.editToken)}`;
     } catch (err: any) {
       setError(err.message);
     } finally {

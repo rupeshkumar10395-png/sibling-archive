@@ -34,8 +34,30 @@ archiveRouter.post("/", async (req: Request, res: Response<CreateArchiveResponse
   }
 });
 
-archiveRouter.get("/:archiveId", (_req, res) => {
-  res.status(501).json({ message: "Get archive not implemented yet." });
+archiveRouter.get("/:archiveId", async (req: Request, res: Response) => {
+  try {
+    const archiveId = req.params.archiveId as string;
+    const archive = await archiveService.getArchiveById(archiveId);
+    if (!archive) {
+      return res.status(404).json({ error: "NOT_FOUND", message: "Archive not found." });
+    }
+    return res.status(200).json(archive);
+  } catch (err: any) {
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
+});
+
+archiveRouter.get("/slug/:slug", async (req: Request, res: Response) => {
+  try {
+    const slug = req.params.slug as string;
+    const archive = await archiveService.getArchiveBySlug(slug);
+    if (!archive) {
+      return res.status(404).json({ error: "NOT_FOUND", message: "Archive not found." });
+    }
+    return res.status(200).json(archive);
+  } catch (err: any) {
+    return res.status(500).json({ error: "INTERNAL_ERROR", message: err.message });
+  }
 });
 
 archiveRouter.post("/:archiveId/publish", (_req, res) => {
