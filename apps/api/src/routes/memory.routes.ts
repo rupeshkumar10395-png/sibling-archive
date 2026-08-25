@@ -12,7 +12,7 @@ export const memoryRouter = Router();
  * GET /memories/default-questions
  * Public endpoint to get the starter question catalogue.
  */
-memoryRouter.get("/default-questions", (_req, res) => {
+memoryRouter.get("/memories/default-questions", (_req, res) => {
   return res.status(200).json(DEFAULT_QUESTIONS);
 });
 

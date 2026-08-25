@@ -56,10 +56,16 @@ function EditArchiveContent() {
     try {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
       const res = await fetch(`${API_BASE_URL}/memories/default-questions`);
+
+      if (!res.ok) {
+        throw new Error(`Catalogue API returned ${res.status} ${res.statusText}`);
+      }
+
       const data = await res.json();
       setCatalogue(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Catalogue fetch failed", err);
+      setApiStatus({ status: 500, message: `Catalogue fetch failed: ${err.message}` });
     }
   };
 
