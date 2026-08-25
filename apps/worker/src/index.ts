@@ -1,8 +1,8 @@
-import { Worker } from "bullmq";
+import { Worker, Job } from "bullmq";
 
 const connection = { url: process.env.REDIS_URL ?? "redis://localhost:6379" };
 
-const worker = new Worker("media-processing", async (job) => {
+const worker = new Worker("media-processing", async (job: Job) => {
   switch (job.name) {
     case "image.process":
       return processImage(job.data);
@@ -15,8 +15,8 @@ const worker = new Worker("media-processing", async (job) => {
   }
 }, { connection });
 
-worker.on("completed", (job) => console.log(`completed ${job.name}:${job.id}`));
-worker.on("failed", (job, err) => console.error(`failed ${job?.name}:${job?.id}`, err));
+worker.on("completed", (job: Job) => console.log(`completed ${job.name}:${job.id}`));
+worker.on("failed", (job: Job | undefined, err: Error) => console.error(`failed ${job?.name}:${job?.id}`, err));
 
 async function processImage(data: unknown) {
   // TODO: thumbnail + metadata + optimization.

@@ -1,5 +1,10 @@
 {
   "name": "@sibling-archive/shared",
   "private": true,
-  "scripts": { "typecheck": "tsc --noEmit" }
+  "main": "dist/types.js",
+  "types": "dist/types.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  }
 }

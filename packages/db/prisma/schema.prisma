@@ -4,74 +4,66 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-model User {
-  id          String          @id @default(cuid())
-  email       String          @unique
-  displayName String?
-  createdAt   DateTime        @default(now())
-  memberships ArchiveMember[]
-  memories    Memory[]
+enum MemoryType {
+  QUESTION
+  PHOTO
+  SCREENSHOT
+  BEFORE_AFTER
 }
 
 model Archive {
-  id            String          @id @default(cuid())
-  slug          String?         @unique
-  title         String
-  status        ArchiveStatus   @default(DRAFT)
-  createdAt     DateTime        @default(now())
-  publishedAt   DateTime?
-  members       ArchiveMember[]
-  invites       Invite[]
-  memories      Memory[]
+  id        String          @id @default(cuid())
+  title     String
+  slug      String          @unique
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  accesses  ArchiveAccess[]
+  memories  Memory[]
+
+  @@index([slug])
 }
 
-model ArchiveMember {
-  id        String     @id @default(cuid())
+model ArchiveAccess {
+  id        String    @id @default(cuid())
   archiveId String
-  userId    String
-  role      MemberRole
-  joinedAt  DateTime   @default(now())
-  archive   Archive    @relation(fields: [archiveId], references: [id], onDelete: Cascade)
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([archiveId, userId])
-}
+  tokenHash String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+  archive   Archive   @relation(fields: [archiveId], references: [id], onDelete: Cascade)
 
-model Invite {
-  id          String    @id @default(cuid())
-  archiveId   String
-  email       String
-  tokenHash   String    @unique
-  expiresAt   DateTime
-  acceptedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  archive     Archive   @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  @@index([archiveId])
 }
 
 model Memory {
-  id             String       @id @default(cuid())
-  archiveId      String
-  createdById    String
-  kind           MemoryKind
-  title          String?
-  body           String?
-  objectKey      String?
-  mimeType       String?
-  sizeBytes      BigInt?
-  width          Int?
-  height         Int?
-  durationMs     Int?
-  processingState ProcessingState @default(PENDING)
-  createdAt      DateTime     @default(now())
-  publishedAt    DateTime?
-  archive        Archive      @relation(fields: [archiveId], references: [id], onDelete: Cascade)
-  createdBy      User         @relation(fields: [createdById], references: [id])
-  @@index([archiveId, createdAt])
+  id        String     @id @default(cuid())
+  archiveId String
+  type      MemoryType
+  content   Json
+  position  Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  archive   Archive    @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  media     Media[]
+
+  @@index([archiveId, position])
+  @@index([archiveId])
 }
 
-enum ArchiveStatus { DRAFT WAITING_FOR_SIBLING READY PUBLISHED SEALED }
-enum MemberRole { CREATOR RECEIVER }
-enum MemoryKind { PHOTO VIDEO AUDIO NOTE QUESTION CHAT COURT }
-enum ProcessingState { PENDING PROCESSING READY FAILED }
+model Media {
+  id         String   @id @default(cuid())
+  memoryId   String
+  storageKey String
+  fileName   String
+  mimeType   String
+  fileSize   Int?
+  width      Int?
+  height     Int?
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+  memory     Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+
+  @@index([memoryId, position])
+  @@index([memoryId])
+}

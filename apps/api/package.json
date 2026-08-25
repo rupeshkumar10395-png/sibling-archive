@@ -8,14 +8,21 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "@sibling-archive/db": "workspace:*",
+    "@sibling-archive/shared": "workspace:*",
     "cors": "latest",
+    "dotenv": "^17.4.2",
     "express": "latest",
+    "pg": "^8.23.0",
     "zod": "latest"
   },
   "devDependencies": {
     "@types/cors": "latest",
     "@types/express": "latest",
     "@types/node": "latest",
+    "@types/pg": "^8.23.1",
     "tsx": "latest",
     "typescript": "latest"
   }

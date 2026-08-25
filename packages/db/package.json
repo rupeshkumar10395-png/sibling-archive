@@ -1,7 +1,21 @@
 {
   "name": "@sibling-archive/db",
   "private": true,
-  "scripts": { "db:generate": "prisma generate", "db:migrate": "prisma migrate dev" },
-  "dependencies": { "@prisma/client": "latest" },
-  "devDependencies": { "prisma": "latest" }
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.9.1",
+    "@prisma/client": "7.9.1",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "add": "^2.0.9",
+    "dotenv": "^17.4.2",
+    "prisma": "7.9.1"
+  }
 }
