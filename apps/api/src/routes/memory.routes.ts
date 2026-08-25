@@ -18,20 +18,11 @@ memoryRouter.get("/memories/default-questions", (_req, res) => {
 
 /**
  * GET /archives/:archiveId/memories
- * Protected: Requires valid edit token for the archive.
+ * Public: Anyone can view memories of an archive.
  */
-memoryRouter.get("/archives/:archiveId/memories", requireEditAccess, async (req, res) => {
+memoryRouter.get("/archives/:archiveId/memories", async (req, res) => {
   try {
     const archiveId = req.params.archiveId as string;
-
-    // Authorization: Ensure the token belongs to the archive being accessed.
-    if (res.locals.archive.id !== archiveId) {
-      return res.status(403).json({
-        error: "FORBIDDEN",
-        message: "This token does not grant access to the specified archive.",
-      });
-    }
-
     const memories = await memoryService.getArchiveMemories(archiveId);
     return res.status(200).json(memories);
   } catch (err: any) {

@@ -174,7 +174,8 @@ function ArchiveBuilderContent() {
       const res = await fetch(`${API_BASE_URL}/archives/${archiveId}`);
       if (res.ok) {
         const data = await res.json();
-        setPublicLink(`/archive/${data.slug}`);
+        // In V1, the generated link is the builder link to allow both viewing and editing
+        setPublicLink(`/builder?archiveId=${encodeURIComponent(data.id)}&token=${encodeURIComponent(token)}`);
       }
     } catch (err) {
       console.error("Generate link failed", err);
