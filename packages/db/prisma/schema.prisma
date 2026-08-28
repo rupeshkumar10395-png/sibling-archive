@@ -6,64 +6,27 @@ datasource db {
   provider = "postgresql"
 }
 
-enum MemoryType {
-  QUESTION
-  PHOTO
-  SCREENSHOT
-  BEFORE_AFTER
-}
-
 model Archive {
-  id        String          @id @default(cuid())
+  id        String   @id @default(cuid())
   title     String
-  slug      String          @unique
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  accesses  ArchiveAccess[]
-  memories  Memory[]
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  slides    Slide[]
 
   @@index([slug])
 }
 
-model ArchiveAccess {
-  id        String    @id @default(cuid())
+model Slide {
+  id        String   @id @default(cuid())
   archiveId String
-  tokenHash String    @unique
-  createdAt DateTime  @default(now())
-  expiresAt DateTime?
-  archive   Archive   @relation(fields: [archiveId], references: [id], onDelete: Cascade)
-
-  @@index([archiveId])
-}
-
-model Memory {
-  id        String     @id @default(cuid())
-  archiveId String
-  type      MemoryType
-  content   Json
-  position  Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  archive   Archive    @relation(fields: [archiveId], references: [id], onDelete: Cascade)
-  media     Media[]
+  type      String   // PHOTO, QUESTION, BEFORE_AFTER, SIBLING_COURT, CHAT_SCREENSHOT
+  position  Int
+  data      Json     // Type-specific fields stored here
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archive   Archive  @relation(fields: [archiveId], references: [id], onDelete: Cascade)
 
   @@index([archiveId, position])
   @@index([archiveId])
-}
-
-model Media {
-  id         String   @id @default(cuid())
-  memoryId   String
-  storageKey String
-  fileName   String
-  mimeType   String
-  fileSize   Int?
-  width      Int?
-  height     Int?
-  position   Int      @default(0)
-  createdAt  DateTime @default(now())
-  memory     Memory   @relation(fields: [memoryId], references: [id], onDelete: Cascade)
-
-  @@index([memoryId, position])
-  @@index([memoryId])
 }

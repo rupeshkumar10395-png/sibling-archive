@@ -5,9 +5,7 @@
   "scripts": {
     "dev:web": "pnpm --filter @sibling-archive/web dev",
     "dev:api": "pnpm --filter @sibling-archive/api dev",
-    "dev:worker": "pnpm --filter @sibling-archive/worker dev",
-    "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck"
+    "build": "pnpm -r build"
   },
   "devDependencies": {
     "typescript": "latest"
